@@ -93,11 +93,13 @@ int profile(profile_what what) {
 				fprintf(stderr, "File content error : %s\n", fileid);
 			}
 
+			free(data);
+			free(pattern);
+
 			// close file
 			sshdd_fclose(sshdd, f);
 
 			// metrics
-			count++;
 			bytes_read += size;
 		}
 

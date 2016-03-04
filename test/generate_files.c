@@ -17,8 +17,12 @@
 
 int generate_files() {
 
+	// process log
 	struct request BER, LER, *R;
+
+	// metrics
 	int file_count = 0;
+	int append_count = 0;
 	int log_count = 0;
 	unsigned int bytes_written = 0;
 
@@ -69,6 +73,10 @@ int generate_files() {
 				fname = hdd_fname;
 			} else {
 				// file does not exist
+				file_count++;
+				if (file_count % 100 == 0)
+					fprintf(stderr, "File count : %d\n", file_count);
+
 				old_size = 0;
 				if (bytes_written < SSD_SIZE) {
 					fname = ssd_fname;
@@ -101,6 +109,7 @@ int generate_files() {
 				if (extra_size != written) {
 					fprintf(stderr, "File write error : %s\n", fname);
 				}
+				free(data);
 
 				// flush and close file
 				fflush(f);
@@ -108,10 +117,10 @@ int generate_files() {
 				fclose(f);
 
 				// metrics
-				file_count++;
+				append_count++;
 				bytes_written += extra_size;
-				if (file_count % 100 == 0)
-					fprintf(stderr, "File appends : %d\n", file_count);
+				if (append_count % 100 == 0)
+					fprintf(stderr, "File appends : %d\n", append_count);
 			}
 		}
 
@@ -125,6 +134,7 @@ int generate_files() {
 	fprintf(stderr, "******************************\n");
 	fprintf(stderr, "Total logs : %d\n", log_count);
 	fprintf(stderr, "Total files : %d\n", file_count);
+	fprintf(stderr, "Total appends : %d\n", append_count);
 	fprintf(stderr, "Total bytes : %u\n", bytes_written);
 	fprintf(stderr, "******************************\n");
 
