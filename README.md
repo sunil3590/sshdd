@@ -10,8 +10,7 @@ Files are moved between SSD and HDD without the user's knowledge with a goal to 
 * File swaps between SSD and HDD are made only when the scores differ by a threshold
 
 ### Testing
-File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html
-All files in the access pattern data set are generated and the access pattern is simulated to study the performance gain.
+File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html. All files in the access pattern data set are generated and the access pattern is simulated to study the performance gain in terms of time take to read all files in the access pattern.
 
 ### TODO
 * Ensure the profiler does not read files out of RAM from the second time a file is accessed
