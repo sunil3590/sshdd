@@ -74,7 +74,7 @@ int generate_files() {
 			} else {
 				// file does not exist
 				file_count++;
-				if (file_count % 100 == 0)
+				if (file_count % 500 == 0)
 					fprintf(stderr, "File count : %d\n", file_count);
 
 				old_size = 0;
@@ -119,7 +119,7 @@ int generate_files() {
 				// metrics
 				append_count++;
 				bytes_written += extra_size;
-				if (append_count % 100 == 0)
+				if (append_count % 500 == 0)
 					fprintf(stderr, "File appends : %d\n", append_count);
 			}
 		}

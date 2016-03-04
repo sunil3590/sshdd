@@ -37,8 +37,9 @@ int profile(profile_what what) {
 
 	// prepare to run profiler
 	struct request BER, LER, *R;
-	int count = 0;
-	unsigned int bytes_read = 0;
+	int log_count = 0;
+	int file_access_count = 0;
+	unsigned long bytes_read = 0;
 	double time_taken = 0;
 
 	fprintf(stderr, "Reading Access Log\n");
@@ -52,9 +53,9 @@ int profile(profile_what what) {
 
 	while (!feof(log_file)) {
 		/* status indicator */
-		count++;
-		if (count % 100000 == 0)
-			fprintf(stderr, "Logs analyzed : %d\n", count);
+		log_count++;
+		if (log_count % 100000 == 0)
+			fprintf(stderr, "Logs analyzed : %d\n", log_count);
 
 		LittleEndianRequest(&BER, &LER);
 		R = &LER;
@@ -101,6 +102,9 @@ int profile(profile_what what) {
 
 			// metrics
 			bytes_read += size;
+			file_access_count++;
+			if (file_access_count % 100000 == 0)
+				fprintf(stderr, "Files accessed : %d\n", file_access_count);
 		}
 
 		/* read the next request */
@@ -110,9 +114,10 @@ int profile(profile_what what) {
 	fclose(log_file);
 
 	/* final count */
+	fprintf(stderr, "Total logs analyzed : %d\n", log_count);
+	fprintf(stderr, "Total file access : %d\n", file_access_count);
+	fprintf(stderr, "Total bytes read : %lu\n", bytes_read);
 	fprintf(stderr, "Total time taken : %f sec\n", time_taken  / (double)CLOCKS_PER_SEC);
-	fprintf(stderr, "Total file access : %d\n", count);
-	fprintf(stderr, "Total bytes read : %u\n", bytes_read);
 
 	return 0;
 }

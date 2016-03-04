@@ -37,6 +37,6 @@
 Debug/
 Release/
 
-# Output files
-test/data/hdd/*
-test/data/ssd/*
+# Log files
+generate.log
+benchmark.log
