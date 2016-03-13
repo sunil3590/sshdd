@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "sshdd.h"
+#include "allocation_strategy.h"
 
 void* sshdd_init(const int optimize, const char *ssd_folder,
 		const char *hdd_folder) {
@@ -14,6 +16,13 @@ void* sshdd_init(const int optimize, const char *ssd_folder,
 	sshdd->optimize = optimize;
 	strcpy(sshdd->ssd_folder, ssd_folder);
 	strcpy(sshdd->hdd_folder, hdd_folder);
+
+	//Create the allocation strategy daemon thread if optimize set to 1
+	if(sshdd->optimize){
+		//create the thread
+		pthread_t as_daemon;
+		pthread_create(&as_daemon, NULL, &as_daemon_init, (void *)&sshdd);
+	}
 
 	return sshdd;
 }
