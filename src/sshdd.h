@@ -1,6 +1,12 @@
 #ifndef SSHDD_H_
 #define SSHDD_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <pthread.h>
+
 typedef struct sshdd {
 	// TODO : add any state information here
 	// statistics variables
