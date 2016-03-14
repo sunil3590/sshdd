@@ -7,6 +7,9 @@
 #include <string.h>
 #include <pthread.h>
 
+extern int timestamp;
+pthread_mutex_t ht_lock; //lock for all the file_md objects
+
 typedef struct sshdd {
 	// TODO : add any state information here
 	// statistics variables
@@ -18,6 +21,7 @@ typedef struct sshdd {
 	char ssd_folder[256];
 	char hdd_folder[256];
 } sshdd;
+sshdd* sshdd_handle = NULL;
 
 void* sshdd_init(const int optimize, const char *ssd_folder, const char *hdd_folder);
 
