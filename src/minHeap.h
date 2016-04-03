@@ -14,12 +14,8 @@ typedef struct minHeap{
 	file_md *elem;
 }minHeap;
 
-
 //Function to initialize min heap
 minHeap initMinHeap();
-
-
-
 
 #endif /* MIN_HEAP_H_ */
 

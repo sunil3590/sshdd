@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <string.h>
 
-
 //Function to initialize min priority queue
 minHeap initMinHeap(){
 	minHeap pq;
@@ -65,7 +64,6 @@ void deleteNodeMinHeap(minHeap *hp) {
     }
 }
 
-
 //Build min heap
 void buildMinHeap(minHeap *hp, file_md *arr, int size) {
     int i ;
@@ -87,4 +85,3 @@ void buildMinHeap(minHeap *hp, file_md *arr, int size) {
         heapifyMinHeap(hp, i) ;
     }
 }
-

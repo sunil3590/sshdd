@@ -7,6 +7,7 @@
 #include <string.h>
 #include <pthread.h>
 
+// TODO : global
 extern int timestamp;
 pthread_mutex_t ht_lock; //lock for all the file_md objects
 

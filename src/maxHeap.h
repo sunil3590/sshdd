@@ -14,12 +14,8 @@ typedef struct maxHeap{
 	file_md *elem; //stores array of file_md pointers
 }maxHeap;
 
-
 //Function to initialize max heap
 maxHeap initMaxHeap();
-
-
-
 
 #endif /* MAX_HEAP_H_ */
 

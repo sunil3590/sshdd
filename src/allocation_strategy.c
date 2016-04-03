@@ -38,6 +38,7 @@ void * as_daemon_init(void *arg){
 		file_obj->mfu_ctr = 0;
 		file_obj->lru_ctr = 0;
 
+		// TODO : file_name -> fileid
 		//Add the file_md object into the hash map
 		HASH_ADD_STR(ht_file_md, file_name, file_obj);
 		//Add the file_md object into the max heap for HDD
