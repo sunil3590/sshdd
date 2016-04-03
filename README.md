@@ -18,5 +18,11 @@ File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html.
 * Implement file access book keeping in SSHDD
 * Implement file allocation strategy
 
-### References
-1. 
+### Dependencies
+1. libpqueue
+```
+git clone cd https://github.com/vy/libpqueue.git
+cd libpqueue/src
+gcc -c pqueue.c -o pqueue.o
+ar rcs libpqueue.a pqueue.o
+```
