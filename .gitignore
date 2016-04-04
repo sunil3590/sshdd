@@ -38,5 +38,4 @@ Debug/
 Release/
 
 # Log files
-generate.log
-benchmark.log
+*.log

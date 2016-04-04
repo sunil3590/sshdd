@@ -10,6 +10,9 @@
 #include <time.h>
 
 #include "main.h"
+#include "uthash.h"
+#include "pqueue.h"
+#include "file_md.h"
 #include "sshdd.h"
 #include "definitions.h"
 #include "endian.h"
@@ -19,7 +22,7 @@
 int profile(profile_what what) {
 
 	// initialize sshdd
-	sshdd* sshdd = NULL;
+	sshdd_t* sshdd = NULL;
 
 	if (what == DEFAULT_FUNCTIONS) {
 		sshdd = sshdd_init(0, SSD_FOLDER, HDD_FOLDER);

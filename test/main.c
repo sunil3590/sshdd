@@ -8,16 +8,48 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "uthash.h"
+#include "pqueue.h"
+#include "file_md.h"
+#include "sshdd.h"
 #include "generate_files.h"
 #include "profile.h"
+#include "main.h"
 
 void usage() {
-	fprintf(stderr, "usage: sshdd <generate / benchmark / profile>\n");
+	fprintf(stderr, "usage: sshdd <generate / benchmark / profile / simple>\n");
 	fprintf(stderr, "\tgenerate : generates the data files for further testing\n");
 	fprintf(stderr, "\tbenchmark : establish benchmark using default file functions\n");
 	fprintf(stderr, "\tprofile : profile sshdd file functions\n");
+	fprintf(stderr, "\tsimple : simple use case\n");
 
 	return;
+}
+
+// function to demonstrate simple use case of sshdd
+void run_simple() {
+	// initialize sshdd
+	void *sshdd = NULL;
+	sshdd = sshdd_init(1, SSD_FOLDER, HDD_FOLDER);
+	if (sshdd == NULL) {
+		fprintf(stderr, "Failed to init sshdd.\n");
+		return;
+	}
+
+	FILE *f = sshdd_fopen(sshdd, "1", "r");
+	if (f == NULL) {
+		fprintf(stderr, "Failed to open file.\n");
+		return;
+	}
+
+	if (sshdd_fclose(sshdd, f) != 0) {
+		fprintf(stderr, "Failed to open file.\n");
+		return;
+	}
+
+	sshdd_terminate(sshdd);
+
+	fprintf(stderr, "Successfully tested simple use case.\n");
 }
 
 int main(int argc, char** argv) {
@@ -33,6 +65,8 @@ int main(int argc, char** argv) {
 		profile(DEFAULT_FUNCTIONS);
 	} else if (strcmp(argv[1], "profile") == 0) {
 		profile(SSHDD_FUNCTIONS);
+	} else if (strcmp(argv[1], "simple") == 0) {
+		run_simple();
 	} else {
 		usage();
 		return -1;

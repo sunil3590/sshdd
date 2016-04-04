@@ -17,6 +17,8 @@ File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html.
 * Add mapping of file ID to physical path in SSHDD
 * Implement file access book keeping in SSHDD
 * Implement file allocation strategy
+* Remove hard coding of numbers
+* Add locking mechanism
 
 ### Dependencies
 1. libpqueue
