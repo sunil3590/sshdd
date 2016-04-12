@@ -4,7 +4,7 @@
 typedef struct as_node_t
 {
 	file_md_t *file_md_ptr;
-	size_t pos; //TODO: unused variable
+	size_t pos;
 } as_node_t;
 
 
