@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <stdio.h>
-#include <sys/stat.h>
 
 #include "uthash.h"
 #include "file_md.h"
@@ -55,39 +54,4 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 	*ht_head = ht_file_md;
 
 	return i;
-}
-
-int get_folder_size(char *folder) {
-	// Read all the files in folder
-	DIR *dir = NULL;
-	struct dirent *in_file;
-	if (NULL == (dir = opendir(folder))) {
-		fprintf(stderr, "Failed to open folder : %s for building metadata\n",
-				folder);
-		return 0;
-	}
-
-	int size = 0;
-	while ((in_file = readdir(dir))) {
-		//Ignore '.' and '..'
-		if (!strcmp(in_file->d_name, "."))
-			continue;
-		if (!strcmp(in_file->d_name, ".."))
-			continue;
-		if (!strcmp(in_file->d_name, ".gitignore"))
-			continue;
-
-		char fname[256] = {0};
-		strcat(fname, folder);
-		strcat(fname, in_file->d_name);
-
-		FILE *f = fopen(fname, "r");
-		struct stat buf;
-		fstat(fileno(f), &buf);
-		fclose(f);
-		size += buf.st_size;
-	}
-
-	printf("%d", size);
-	return size;
 }
