@@ -40,7 +40,7 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 
 		file_md_t *cur_file_md = &file_md[i];
 		// TODO Assuming size less than 16 bytes
-		strcpy(cur_file_md->fileid, in_file->d_name);
+		snprintf(cur_file_md->fileid, 16, "%s", in_file->d_name);
 		cur_file_md->loc = loc;
 		cur_file_md->mfu_ctr = 0;
 		cur_file_md->lru_ctr = 0;
@@ -78,8 +78,7 @@ int get_folder_size(char *folder) {
 			continue;
 
 		char fname[256] = {0};
-		strcat(fname, folder);
-		strcat(fname, in_file->d_name);
+		snprintf(fname, 256, "%s/%s", folder, in_file->d_name);
 
 		FILE *f = fopen(fname, "r");
 		struct stat buf;
@@ -88,6 +87,5 @@ int get_folder_size(char *folder) {
 		size += buf.st_size;
 	}
 
-	printf("%d", size);
 	return size;
 }
