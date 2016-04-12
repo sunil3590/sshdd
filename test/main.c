@@ -46,7 +46,7 @@ void run_simple() {
 		return;
 	}
 
-	FILE *f = sshdd_fopen(sshdd, "1", "r");
+	void *f = sshdd_fopen(sshdd, "1", "r");
 	if (f == NULL) {
 		fprintf(stderr, "Failed to open file.\n");
 		return;

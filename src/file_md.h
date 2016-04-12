@@ -20,7 +20,7 @@ typedef struct file_md_t {
 	file_loc loc;		// hdd or ssd
     int mfu_ctr;		// MFU counter
     int lru_ctr;		// LRU counter
-    int is_open;		// marked if file is open
+    int ref_count;		// marked if file is open
     UT_hash_handle hh;	// makes this structure hashable
 } file_md_t;
 

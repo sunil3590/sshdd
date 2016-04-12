@@ -84,7 +84,7 @@ int profile(profile_what what) {
 			// open file
 			char fileid[128];
 			sprintf(fileid, "%d", R->objectID);
-			FILE* f = sshdd_fopen(sshdd, fileid, "r");
+			void* f = sshdd_fopen(sshdd, fileid, "r");
 			if (f == NULL) {
 				fprintf(stderr, "File open error : %s\n", fileid);
 				continue;

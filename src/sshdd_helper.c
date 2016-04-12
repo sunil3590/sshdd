@@ -44,7 +44,7 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 		cur_file_md->loc = loc;
 		cur_file_md->mfu_ctr = 0;
 		cur_file_md->lru_ctr = 0;
-		cur_file_md->is_open = 0;
+		cur_file_md->ref_count = 0;
 
 		// add fileid -> file_md mapping
 		HASH_ADD_STR(ht_file_md, fileid, cur_file_md);
@@ -68,7 +68,6 @@ int get_folder_size(char *folder) {
 	}
 
 	int size = 0;
-
 	while ((in_file = readdir(dir))) {
 		//Ignore '.' and '..'
 		if (!strcmp(in_file->d_name, "."))
@@ -77,11 +76,15 @@ int get_folder_size(char *folder) {
 			continue;
 		if (!strcmp(in_file->d_name, ".gitignore"))
 			continue;
+
 		char fname[256] = {0};
 		strcat(fname, folder);
 		strcat(fname, in_file->d_name);
+
+		FILE *f = fopen(fname, "r");
 		struct stat buf;
-		fstat(fileno(fopen(fname, "r")), &buf);
+		fstat(fileno(f), &buf);
+		fclose(f);
 		size += buf.st_size;
 	}
 

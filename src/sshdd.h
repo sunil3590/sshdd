@@ -19,19 +19,22 @@ typedef struct sshdd_t {
 	pthread_t as_thread; // allocation strategy thread
 	unsigned int ssd_max_size;
 	unsigned int hdd_max_size;
-	unsigned int ssd_cur_size;
-	unsigned int hdd_cur_size;
 } sshdd_t;
+
+typedef struct SFILE {
+	FILE *f;
+	file_md_t *file_md;
+} SFILE;
 
 void* sshdd_init(sshdd_conf_t *conf);
 
-FILE* sshdd_fopen(void *handle, const char *fileid, const char *mode);
+SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode);
 
-size_t sshdd_fread(void *handle, void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t sshdd_fread(void *handle, void *ptr, size_t size, size_t nmemb, SFILE *fs);
 
-size_t sshdd_fwrite(void *handle, const void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t sshdd_fwrite(void *handle, const void *ptr, size_t size, size_t nmemb, SFILE *fs);
 
-int sshdd_fclose(void *handle, FILE *stream);
+int sshdd_fclose(void *handle, SFILE *fs);
 
 int sshdd_terminate(void* handle);
 

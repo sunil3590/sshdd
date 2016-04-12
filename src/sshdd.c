@@ -21,8 +21,6 @@ void* sshdd_init(sshdd_conf_t *conf) {
 	strcpy(sshdd->ssd_folder, conf->ssd_folder);
 	strcpy(sshdd->hdd_folder, conf->hdd_folder);
 	sshdd->ht_file_md_head = NULL;
-	sshdd->ssd_cur_size = get_folder_size(conf->ssd_folder);
-	sshdd->hdd_cur_size = get_folder_size(conf->hdd_folder);
 	sshdd->ssd_max_size = conf->ssd_max_size;
 	sshdd->hdd_max_size = conf->hdd_max_size;
 
@@ -45,29 +43,16 @@ void* sshdd_init(sshdd_conf_t *conf) {
 	return sshdd;
 }
 
-FILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
-	// TODO : cannot open a file which is currently getting moved
+SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
+	// TODO : cannot open a file which is currently getting moved, LOCK
 
 	sshdd_t* sshdd = handle;
-
 	sshdd->currently_open++;
 
 	// Get file_md object from hash table
 	file_md_t *ht_file_md = sshdd->ht_file_md_head;
 	file_md_t *file_md = NULL;
 	HASH_FIND_STR(ht_file_md, fileid, file_md);
-
-	// keep a count of how many times a file is open
-	file_md->is_open++;
-
-#if 0
-	// debug print
-	if (file_md) {
-		fprintf(stderr, "Got the file_obj: %s, %s, %d, %d, %d\n", fileid,
-				file_md->fileid, file_md->loc, file_md->mfu_ctr,
-				file_md->lru_ctr);
-	}
-#endif
 
 	// check where the file is located
 	char *folder = NULL;
@@ -79,39 +64,67 @@ FILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 
 	//Update the statistics, if the optimize is enabled
 	if (sshdd->optimize != 0) {
+		// keep a count of how many times a file is open
+		file_md->ref_count++;
 		//Increment the MFU counter
 		file_md->mfu_ctr++;
 		//Update the LRU counter
-		file_md->lru_ctr++; // TODO : add timestamp
+		file_md->lru_ctr = 0; // TODO : add timestamp
 	}
 
 	// map file id to actual file path
 	char filename[512]; // TODO : hardcode
 	sprintf(filename, "%s%s", folder, fileid);
 
-	// TODO : put FILE* in SSHDD_FILE struct, fileid should also be a part of SSHDD_FILE
-	return fopen(filename, mode);
+	// create a SFILE struct for the file
+	SFILE *sf = malloc(sizeof(SFILE));
+	sf->f = fopen(filename, mode);;
+	sf->file_md = file_md;
+
+	return sf;
 }
 
-int sshdd_fclose(void *handle, FILE *stream) {
-	// TODO
-	// cannot move a file which is open, so bookmark when a file is closed
-
+int sshdd_fclose(void *handle, SFILE *fs) {
 	sshdd_t* sshdd = handle;
-
 	sshdd->currently_open--;
 
-	return fclose(stream);
+	//Update the statistics, if the optimize is enabled
+	if (sshdd->optimize != 0) {
+		fs->file_md->ref_count--;
+		fs->file_md->lru_ctr = 0; // TODO
+	}
+
+	int ret = fclose(fs->f);
+
+	free(fs);
+
+	return ret;
 }
 
 size_t sshdd_fread(void *handle, void *ptr, size_t size, size_t nmemb,
-		FILE *stream) {
-	return fread(ptr, size, nmemb, stream);
+		SFILE *fs) {
+	sshdd_t* sshdd = handle;
+
+	//Update the statistics, if the optimize is enabled
+	if (sshdd->optimize != 0) {
+		fs->file_md->mfu_ctr++;
+		fs->file_md->lru_ctr = 0; // TODO
+	}
+
+	return fread(ptr, size, nmemb, fs->f);
 }
 
 size_t sshdd_fwrite(void *handle, const void *ptr, size_t size, size_t nmemb,
-		FILE *stream) {
-	return fwrite(ptr, size, nmemb, stream);
+		SFILE *fs) {
+	sshdd_t* sshdd = handle;
+
+	//Update the statistics, if the optimize is enabled
+	if (sshdd->optimize != 0) {
+		fs->file_md->mfu_ctr++;
+		fs->file_md->lru_ctr = 0; // TODO
+	}
+
+	return fwrite(ptr, size, nmemb, fs->f);
 }
 
 int sshdd_terminate(void* handle) {
