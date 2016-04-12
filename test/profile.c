@@ -23,7 +23,6 @@ int profile(profile_what what) {
 
 	// initialize sshdd
 	sshdd_conf_t conf;
-	conf.optimize = 1;
 	conf.ssd_folder = SSD_FOLDER;
 	conf.hdd_folder = HDD_FOLDER;
 	// TODO : test case where
@@ -35,8 +34,10 @@ int profile(profile_what what) {
 	sshdd_t* sshdd = NULL;
 
 	if (what == DEFAULT_FUNCTIONS) {
+		conf.optimize = 0;
 		sshdd = sshdd_init(&conf);
 	} else if (what == SSHDD_FUNCTIONS) {
+		conf.optimize = 1;
 		sshdd = sshdd_init(&conf);
 	} else {
 		fprintf(stderr, "Error: Invalid argument\n");
