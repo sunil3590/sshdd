@@ -14,10 +14,8 @@ File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html.
 
 ### TODO
 * Ensure the profiler does not read files out of RAM from the second time a file is accessed
-* Add mapping of file ID to physical path in SSHDD
-* Implement file access book keeping in SSHDD
 * Implement file allocation strategy
-* Remove hard coding of numbers
+* Remove hard coding of any numbers
 * Add locking mechanism
 
 ### Dependencies
