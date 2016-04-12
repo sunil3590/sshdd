@@ -29,8 +29,18 @@ void usage() {
 // function to demonstrate simple use case of sshdd
 void run_simple() {
 	// initialize sshdd
+	sshdd_conf_t conf;
+	conf.optimize = 1;
+	conf.ssd_folder = SSD_FOLDER;
+	conf.hdd_folder = HDD_FOLDER;
+	// TODO : test case where
+	// 1. SSD is full
+	// 2. SSD is partially filled
+	conf.ssd_max_size = 3 * 1024;
+	conf.hdd_max_size = 3 * 1024;
+
 	void *sshdd = NULL;
-	sshdd = sshdd_init(1, SSD_FOLDER, HDD_FOLDER);
+	sshdd = sshdd_init(&conf);
 	if (sshdd == NULL) {
 		fprintf(stderr, "Failed to init sshdd.\n");
 		return;

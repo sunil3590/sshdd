@@ -22,12 +22,22 @@
 int profile(profile_what what) {
 
 	// initialize sshdd
+	sshdd_conf_t conf;
+	conf.optimize = 1;
+	conf.ssd_folder = SSD_FOLDER;
+	conf.hdd_folder = HDD_FOLDER;
+	// TODO : test case where
+	// 1. SSD is full
+	// 2. SSD is partially filled
+	conf.ssd_max_size = 3 * 1024;
+	conf.hdd_max_size = 3 * 1024;
+
 	sshdd_t* sshdd = NULL;
 
 	if (what == DEFAULT_FUNCTIONS) {
-		sshdd = sshdd_init(0, SSD_FOLDER, HDD_FOLDER);
+		sshdd = sshdd_init(&conf);
 	} else if (what == SSHDD_FUNCTIONS) {
-		sshdd = sshdd_init(1, SSD_FOLDER, HDD_FOLDER);
+		sshdd = sshdd_init(&conf);
 	} else {
 		fprintf(stderr, "Error: Invalid argument\n");
 		return -1;

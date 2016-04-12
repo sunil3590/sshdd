@@ -12,29 +12,31 @@
 #include "sshdd_helper.h"
 #include "sshdd_helper.h"
 
-void* sshdd_init(const int optimize, const char *ssd_folder,
-		const char *hdd_folder) {
+void* sshdd_init(sshdd_conf_t *conf) {
 	sshdd_t* sshdd = malloc(sizeof(struct sshdd_t));
 
 	// initialize sshdd
 	sshdd->currently_open = 0;
-	sshdd->optimize = optimize;
-	strcpy(sshdd->ssd_folder, ssd_folder);
-	strcpy(sshdd->hdd_folder, hdd_folder);
+	sshdd->optimize = conf->optimize;
+	strcpy(sshdd->ssd_folder, conf->ssd_folder);
+	strcpy(sshdd->hdd_folder, conf->hdd_folder);
 	sshdd->ht_file_md_head = NULL;
-	sshdd->ssd_pq = NULL; // TODO : initialize priority queue
-	sshdd->hdd_pq = NULL; // TODO : initialize priority queue
+	sshdd->ssd_cur_size = get_folder_size(conf->ssd_folder);
+	sshdd->hdd_cur_size = get_folder_size(conf->hdd_folder);
+	sshdd->ssd_max_size = conf->ssd_max_size;
+	sshdd->hdd_max_size = conf->hdd_max_size;
 
 	// index all files in HDD and SSD folders
-	int len = build_metadata_for_folder(ssd_folder, SSD, &sshdd->file_md[0],
-			sshdd->ssd_pq, &(sshdd->ht_file_md_head));
-	len += build_metadata_for_folder(hdd_folder, HDD, &sshdd->file_md[len],
-			sshdd->hdd_pq, &(sshdd->ht_file_md_head));
+	int len = build_metadata_for_folder(conf->ssd_folder, SSD,
+			&sshdd->file_md[0], &(sshdd->ht_file_md_head));
+	len += build_metadata_for_folder(conf->hdd_folder, HDD,
+			&sshdd->file_md[len], &(sshdd->ht_file_md_head));
 	fprintf(stderr, "Indexed %d files in total\n", len);
 
 	// set up sshdd allocation thread if requested
 	if (sshdd->optimize != 0) {
-		if (0 != pthread_create(&(sshdd->as_thread), NULL,
+		if (0
+				!= pthread_create(&(sshdd->as_thread), NULL,
 						&allocation_strategy, (void *) sshdd)) {
 			fprintf(stderr, "Cannot create allocation strategy thread\n");
 		}
@@ -55,9 +57,8 @@ FILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 	file_md_t *file_md = NULL;
 	HASH_FIND_STR(ht_file_md, fileid, file_md);
 
-	// mark file as open
-	// TODO : should we keep a count of concurrent opens?
-	file_md->is_open = 1;
+	// keep a count of how many times a file is open
+	file_md->is_open++;
 
 #if 0
 	// debug print

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "uthash.h"
 #include "file_md.h"
@@ -15,13 +16,14 @@
 #include "sshdd.h"
 
 int build_metadata_for_folder(const char *folder, file_loc loc,
-		file_md_t *file_md, pqueue_t *pq, file_md_t **ht_head) {
+		file_md_t *file_md, file_md_t **ht_head) {
 
 	// Read all the files in folder
 	DIR *dir = NULL;
 	struct dirent *in_file;
 	if (NULL == (dir = opendir(folder))) {
-		fprintf(stderr, "Failed to open folder : %s for building metadata\n", folder);
+		fprintf(stderr, "Failed to open folder : %s for building metadata\n",
+				folder);
 		return 0;
 	}
 
@@ -32,6 +34,8 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 		if (!strcmp(in_file->d_name, "."))
 			continue;
 		if (!strcmp(in_file->d_name, ".."))
+			continue;
+		if (!strcmp(in_file->d_name, ".gitignore"))
 			continue;
 
 		file_md_t *cur_file_md = &file_md[i];
@@ -45,12 +49,42 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 		// add fileid -> file_md mapping
 		HASH_ADD_STR(ht_file_md, fileid, cur_file_md);
 
-		// TODO build priority queue for SSD and HDD meta data
-
 		i++;
 	}
 
 	*ht_head = ht_file_md;
 
 	return i;
+}
+
+int get_folder_size(char *folder) {
+	// Read all the files in folder
+	DIR *dir = NULL;
+	struct dirent *in_file;
+	if (NULL == (dir = opendir(folder))) {
+		fprintf(stderr, "Failed to open folder : %s for building metadata\n",
+				folder);
+		return 0;
+	}
+
+	int size = 0;
+
+	while ((in_file = readdir(dir))) {
+		//Ignore '.' and '..'
+		if (!strcmp(in_file->d_name, "."))
+			continue;
+		if (!strcmp(in_file->d_name, ".."))
+			continue;
+		if (!strcmp(in_file->d_name, ".gitignore"))
+			continue;
+		char fname[256] = {0};
+		strcat(fname, folder);
+		strcat(fname, in_file->d_name);
+		struct stat buf;
+		fstat(fileno(fopen(fname, "r")), &buf);
+		size += buf.st_size;
+	}
+
+	printf("%d", size);
+	return size;
 }
