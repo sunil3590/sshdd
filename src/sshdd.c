@@ -23,6 +23,7 @@ void* sshdd_init(sshdd_conf_t *conf) {
 	sshdd->ht_file_md_head = NULL;
 	sshdd->ssd_max_size = conf->ssd_max_size;
 	sshdd->hdd_max_size = conf->hdd_max_size;
+	sshdd->the_end = 0;
 
 	// index all files in HDD and SSD folders
 	int len = build_metadata_for_folder(conf->ssd_folder, SSD,
@@ -139,6 +140,10 @@ int sshdd_terminate(void* handle) {
 	if (sshdd->currently_open != 0) {
 		fprintf(stderr, "Cannot terminate, files still open\n");
 	}
+
+	// wait for the allocation strategy thread to stop
+	sshdd->the_end = 1;
+	pthread_join(sshdd->as_thread, NULL);
 
 	free(sshdd);
 

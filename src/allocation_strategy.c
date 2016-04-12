@@ -68,7 +68,7 @@ void * allocation_strategy(void *sshdd_handle) {
 
 	// Periodically move the files from HDD to SSD
 	// based on SSD space and priority queues
-	while (1) {
+	while (sshdd->the_end == 0) {
 
 		//Peek the top node from HDD
 		as_node_t *max_pq_node;
@@ -87,7 +87,7 @@ void * allocation_strategy(void *sshdd_handle) {
 		//Check if SSD has enough spcae
 		int curr_size_ssd = get_folder_size(sshdd->ssd_folder);
 		if (sshdd->ssd_max_size > curr_size_ssd + file_size_hdd) {
-			 //Pop the max node
+			//Pop the max node
 			max_pq_node = pqueue_pop(max_pq);
 
 			//Move the file from HDD to SSD
@@ -100,7 +100,7 @@ void * allocation_strategy(void *sshdd_handle) {
 					hdd_file_md_ptr->fileid);
 
 			if (rename(srcPath, destPath)) {
-				printf("ERROR moving %s HDD->SSD\n", srcPath);// something went wrong
+				printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 				//TODO: cleanup (remove locks)
 				continue;//continue to next iteration if this fails
 			} else { // the rename succeeded
@@ -138,8 +138,8 @@ void * allocation_strategy(void *sshdd_handle) {
 
 			//Check if HDD has enough space to hold both files
 			//And SSD has space to hold the new file
-			if ((new_sz_hdd < sshdd->hdd_max_size) &&
-					(new_sz_ssd < sshdd->ssd_max_size)) {
+			if ((new_sz_hdd < sshdd->hdd_max_size)
+					&& (new_sz_ssd < sshdd->ssd_max_size)) {
 				printf("Files can be interchanged within hdd, ssd caps\n");
 				printf("Pop the top nodes from both hdd, ssd pri queues\n");
 				//Pop the two nodes
@@ -170,7 +170,7 @@ void * allocation_strategy(void *sshdd_handle) {
 						hdd_file_md_ptr->fileid);
 
 				if (rename(srcPath, destPath)) {
-					printf("ERROR moving %s HDD->SSD\n", srcPath);// something went wrong
+					printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 					//TODO: cleanup (remove locks)
 					//TODO: Rollback the last move
 					continue;//continue to next iteration if this fails
@@ -193,7 +193,6 @@ void * allocation_strategy(void *sshdd_handle) {
 		}
 	}
 
-
-		//TODO: free the queues
-		return NULL;
+	//TODO: free the queues
+	return NULL;
 }

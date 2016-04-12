@@ -19,6 +19,7 @@ typedef struct sshdd_t {
 	pthread_t as_thread; // allocation strategy thread
 	unsigned int ssd_max_size;
 	unsigned int hdd_max_size;
+	int the_end;
 } sshdd_t;
 
 typedef struct SFILE {
