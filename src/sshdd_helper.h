@@ -11,6 +11,4 @@
 int build_metadata_for_folder(const char *folder, file_loc loc,
 		file_md_t *file_md, file_md_t **ht_head);
 
-int get_folder_size(char *folder);
-
 #endif /* SSHDD_HELPER_H_ */
