@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <stdio.h>
 
+#include "constants.h"
 #include "uthash.h"
 #include "file_md.h"
 #include "pqueue.h"
@@ -38,8 +39,7 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 			continue;
 
 		file_md_t *cur_file_md = &file_md[i];
-		// TODO Assuming size less than 16 bytes
-		snprintf(cur_file_md->fileid, 16, "%s", in_file->d_name);
+		snprintf(cur_file_md->fileid, FNAME_SMALL_SIZE, "%s", in_file->d_name);
 		cur_file_md->loc = loc;
 		cur_file_md->mfu_ctr = 0;
 		cur_file_md->lru_ctr = 0;

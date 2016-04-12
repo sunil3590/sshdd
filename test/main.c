@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "constants.h"
 #include "uthash.h"
 #include "pqueue.h"
 #include "file_md.h"

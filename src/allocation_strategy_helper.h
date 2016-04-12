@@ -3,8 +3,7 @@
 
 typedef struct as_node_t
 {
-	pqueue_pri_t pri; //TODO: unused variable
-	file_md_t *file_md_ptr; //TODO : pointer to MD struct
+	file_md_t *file_md_ptr;
 	size_t pos; //TODO: unused variable
 } as_node_t;
 

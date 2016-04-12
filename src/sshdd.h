@@ -12,9 +12,9 @@ typedef struct sshdd_conf_t {
 typedef struct sshdd_t {
 	int optimize; // should the algorithm be run?
 	int currently_open; // count of currentl
-	char ssd_folder[256]; // TODO : hardcode
-	char hdd_folder[256]; // TODO : hardcode
-	file_md_t file_md[4096]; // array of meta data objects TODO : hardcode
+	char ssd_folder[FNAME_SIZE];
+	char hdd_folder[FNAME_SIZE];
+	file_md_t file_md[MAX_FILES]; // array of meta data objects
 	file_md_t *ht_file_md_head; // map of fileid -> file_md
 	pthread_t as_thread; // allocation strategy thread
 	unsigned int ssd_max_size;

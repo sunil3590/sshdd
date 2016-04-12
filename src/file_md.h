@@ -16,12 +16,12 @@ typedef enum file_loc {
 
 // File metadata strcuture
 typedef struct file_md_t {
-	char fileid[16];	// KEY TODO : hardcode
-	file_loc loc;		// hdd or ssd
-    int mfu_ctr;		// MFU counter
-    int lru_ctr;		// LRU counter
-    int ref_count;		// marked if file is open
-    UT_hash_handle hh;	// makes this structure hashable
+	char fileid[FNAME_SMALL_SIZE];	// KEY
+	file_loc loc;					// hdd or ssd
+    int mfu_ctr;					// MFU counter
+    int lru_ctr;					// LRU counter
+    int ref_count;					// marked if file is open
+    UT_hash_handle hh;				// makes this structure hashable
 } file_md_t;
 
 #endif /* FILE_MD_H_ */

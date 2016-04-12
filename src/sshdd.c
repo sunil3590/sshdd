@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 
+#include "constants.h"
 #include "uthash.h"
 #include "file_md.h"
 #include "pqueue.h"
@@ -74,7 +75,7 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 	}
 
 	// map file id to actual file path
-	char filename[512]; // TODO : hardcode
+	char filename[FNAME_SIZE];
 	sprintf(filename, "%s%s", folder, fileid);
 
 	// create a SFILE struct for the file

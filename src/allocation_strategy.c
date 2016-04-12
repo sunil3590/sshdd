@@ -1,14 +1,13 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include "constants.h"
 #include "allocation_strategy.h"
 #include "uthash.h"
 #include "pqueue.h"
 #include "file_md.h"
 #include "sshdd.h"
 #include "allocation_strategy_helper.h"
-
-#define THRESHOLD 5
 
 //TODO:Move the files to SSD until it is full without any checks on priority queues
 
@@ -21,13 +20,12 @@ void * allocation_strategy(void *sshdd_handle) {
 	pqueue_t *min_pq = NULL; //SSD
 
 	//Initialize them
-	//TODO: Size of priority queues
-	max_pq = pqueue_init(50000, cmp_pri_max, get_pri, set_pri, get_pos,
+	max_pq = pqueue_init(MAX_FILES, cmp_pri_max, get_pri, set_pri, get_pos,
 			set_pos);
 	if (!max_pq)
 		return NULL;
 	//Create min priority queue (for ssd files)
-	min_pq = pqueue_init(50000, cmp_pri_min, get_pri, set_pri, get_pos,
+	min_pq = pqueue_init(MAX_FILES, cmp_pri_min, get_pri, set_pri, get_pos,
 			set_pos);
 	if (!min_pq)
 		return NULL;
@@ -91,12 +89,12 @@ void * allocation_strategy(void *sshdd_handle) {
 			max_pq_node = pqueue_pop(max_pq);
 
 			//Move the file from HDD to SSD
-			char srcPath[256] = { 0 };
-			char destPath[256] = { 0 };
+			char srcPath[FNAME_SIZE] = { 0 };
+			char destPath[FNAME_SIZE] = { 0 };
 
-			snprintf(srcPath, 256, "%s/%s", sshdd->hdd_folder,
+			snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 					hdd_file_md_ptr->fileid);
-			snprintf(destPath, 256, "%s/%s", sshdd->ssd_folder,
+			snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 					hdd_file_md_ptr->fileid);
 
 			if (rename(srcPath, destPath)) {
@@ -147,12 +145,12 @@ void * allocation_strategy(void *sshdd_handle) {
 				min_pq_node = pqueue_pop(min_pq);
 
 				//Move the file from SSD to HDD
-				char srcPath[256] = { 0 };
-				char destPath[256] = { 0 };
+				char srcPath[FNAME_SIZE] = { 0 };
+				char destPath[FNAME_SIZE] = { 0 };
 
-				snprintf(srcPath, 256, "%s/%s", sshdd->ssd_folder,
+				snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 						ssd_file_md_ptr->fileid);
-				snprintf(destPath, 256, "%s/%s", sshdd->hdd_folder,
+				snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 						ssd_file_md_ptr->fileid);
 
 				if (rename(srcPath, destPath)) {
@@ -164,9 +162,9 @@ void * allocation_strategy(void *sshdd_handle) {
 				}
 
 				//Move the file from HDD to SSD
-				snprintf(srcPath, 256, "%s/%s", sshdd->hdd_folder,
+				snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 						hdd_file_md_ptr->fileid);
-				snprintf(destPath, 256, "%s/%s", sshdd->ssd_folder,
+				snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 						hdd_file_md_ptr->fileid);
 
 				if (rename(srcPath, destPath)) {

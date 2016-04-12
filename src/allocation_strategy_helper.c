@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include "constants.h"
 #include "uthash.h"
 #include "pqueue.h"
 #include "file_md.h"

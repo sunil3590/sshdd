@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+
 #include "main.h"
 #include "definitions.h"
 #include "endian.h"

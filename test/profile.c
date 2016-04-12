@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "constants.h"
 #include "main.h"
 #include "uthash.h"
 #include "pqueue.h"
