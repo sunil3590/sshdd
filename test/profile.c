@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "constants.h"
 #include "main.h"
@@ -65,9 +66,12 @@ int profile(profile_what what, int real_time) {
 		fprintf(stderr, "Error: Failed to read initial request!\n");
 		return -1;
 	}
+	LittleEndianRequest(&BER, &LER);
+	R = &LER;
 
 	// remember the first time stamp
-	int start_ts = -1;
+	time_t run_start = time(NULL);
+	int sim_start = R->timestamp;
 
 	while (!feof(log_file)) {
 		/* status indicator */
@@ -83,18 +87,20 @@ int profile(profile_what what, int real_time) {
 		int status = ((int) R->status) & 0x3f;
 		int size = R->size;
 
-		// remember the first time stamp
-		if (start_ts == -1) {
-			start_ts = R->timestamp;
-		}
-
-		// simulate real time access
-		if (real_time == 1) {
-			sleep(R->timestamp - start_ts);
-		}
-
 		if (status == SC_200 && method == GET
 				&& size != NO_SIZE && size > 0) {
+
+			// simulate real time access
+			if (real_time == 1) {
+				time_t run_cur = time(NULL);
+				time_t run_time = run_cur - run_start;
+				int sim_prog = R->timestamp - sim_start;
+				int delay = sim_prog - run_time;
+				if (delay > 0) {
+					printf("%d sec\n", delay);
+					sleep(delay);
+				}
+			}
 
 			// open file
 			char fileid[128];
