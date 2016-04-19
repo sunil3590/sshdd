@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <mqueue.h>
 
 #include "constants.h"
 #include "allocation_strategy.h"
@@ -63,8 +64,19 @@ void * allocation_strategy(void *sshdd_handle) {
 		}
 	}
 
-	printf("Files added to queues : max_pq[%d], min_pq[%d]", hdd_file_ctr,
+	printf("Files added to queues : max_pq[%d], min_pq[%d]\n", hdd_file_ctr,
 			ssd_file_ctr);
+
+	// buffer to hold message
+	char buffer[MSG_SIZE];
+	int bytes_read = 0;
+
+	// remove all older message
+	while (1) {
+		int bytes_read = mq_receive(sshdd->mq_reader, buffer, MSG_SIZE, NULL);
+		if (bytes_read <= 0)
+			break;
+	}
 
 	// Periodically move the files from HDD to SSD
 	// based on SSD space and priority queues
@@ -82,16 +94,14 @@ void * allocation_strategy(void *sshdd_handle) {
 		}
 
 		//Get the file size
-		char fpath[FNAME_SIZE] = {0};
+		char fpath[FNAME_SIZE] = { 0 };
 		snprintf(fpath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 				hdd_file_md_ptr->fileid);
 		int file_size_hdd = get_file_size(fpath);
 
 		// Check if SSD has enough space
-		printf("FOLDER ");
-		fflush(stdout);
+		// TODO : takes too much time
 		int curr_size_ssd = get_folder_size(sshdd->ssd_folder);
-		printf("SIZE\n");
 		// fill SSD part of the algorithm
 		if (sshdd->ssd_max_size > curr_size_ssd + file_size_hdd) {
 			//Pop the max node
@@ -107,14 +117,11 @@ void * allocation_strategy(void *sshdd_handle) {
 			snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 					hdd_file_md_ptr->fileid);
 
-			printf("RE");
-			fflush(stdout);
 			if (rename(srcPath, destPath)) {
 				printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 				//TODO: cleanup (remove locks)
 				continue;//continue to next iteration if this fails
 			} else { // the rename succeeded
-				printf("NAME\n");
 				printf("Successful moving %s HDD->SSD\n", srcPath);
 			}
 
@@ -204,17 +211,29 @@ void * allocation_strategy(void *sshdd_handle) {
 			}
 			//TODO : Unlock the HDD file
 			sleep(1);
-			//TODO: Heapify the priority queues
 		}
+
+		//TODO: Heapify the priority queues after reading messages
+		int m = 0;
+		while (1) {
+			bytes_read = mq_receive(sshdd->mq_reader, buffer, MSG_SIZE, NULL);
+			if (bytes_read <= 0)
+				break;
+			pri_update_msg *msg = (pri_update_msg *)buffer;
+			file_md_t *file_md = msg->file_md_ptr;
+			printf("%s\n", file_md->fileid);
+			m++;
+		}
+		printf("Messages received %d\n", m);
 	}
 
 	// free the queues
-	while(pqueue_size(max_pq) > 0) {
+	while (pqueue_size(max_pq) > 0) {
 		free(pqueue_pop(max_pq));
 	}
 	pqueue_free(max_pq);
 
-	while(pqueue_size(min_pq) > 0) {
+	while (pqueue_size(min_pq) > 0) {
 		free(pqueue_pop(min_pq));
 	}
 	pqueue_free(min_pq);

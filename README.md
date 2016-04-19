@@ -13,10 +13,14 @@ Files are moved between SSD and HDD without the user's knowledge with a goal to 
 File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html. All files in the access pattern data set are generated and the access pattern is simulated to study the performance gain in terms of time take to read all files in the access pattern.
 
 ### TODO
-* Ensure the profiler does not read files out of RAM from the second time a file is accessed
-* Implement file allocation strategy
-* Remove hard coding of any numbers
+* Real time simulation
+* Aggregate priority updates and re heapify
 * Add locking mechanism
+* Ensure the profiler does not read files out of RAM from the second time a file is accessed
+
+### Important
+To increase the number the messages that can be held in message queue 
+`sudo sh -c "echo 8000 > /proc/sys/fs/mqueue/msg_max"
 
 ### Dependencies
 1. libpqueue

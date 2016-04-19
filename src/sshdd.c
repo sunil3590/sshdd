@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <mqueue.h>
+#include <errno.h>
 
 #include "constants.h"
 #include "uthash.h"
@@ -34,12 +36,32 @@ void* sshdd_init(sshdd_conf_t *conf) {
 			&sshdd->file_md[len], &(sshdd->ht_file_md_head));
 	fprintf(stderr, "Indexed %d files in total\n", len);
 
-	// set up sshdd allocation thread if requested
 	if (sshdd->optimize != 0) {
-		if (0
-				!= pthread_create(&(sshdd->as_thread), NULL,
-						&allocation_strategy, (void *) sshdd)) {
+		struct mq_attr attr;
+	    // initialize the queue attributes
+	    attr.mq_flags = 0;
+	    attr.mq_maxmsg = NUM_MSGS;
+	    attr.mq_msgsize = MSG_SIZE;
+	    attr.mq_curmsgs = 0;
+	    mq_unlink(QUEUE_NAME);
+		sshdd->mq_writer = mq_open(QUEUE_NAME, O_CREAT | O_WRONLY | O_NONBLOCK, 0644, &attr);
+		if (sshdd->mq_writer == -1) {
+			fprintf(stderr, "Cannot create write message queue\n");
+			return NULL;
+		}
+		sshdd->mq_reader = mq_open(QUEUE_NAME, O_RDONLY | O_NONBLOCK);
+		if (sshdd->mq_reader == -1) {
+			fprintf(stderr, "Cannot create read message queue\n");
+			return NULL;
+		}
+		// set up sshdd allocation thread
+		int status = pthread_create(&(sshdd->as_thread), NULL,
+				&allocation_strategy, (void *) sshdd);
+		if (status != 0) {
+			mq_close(sshdd->mq_writer);
+			mq_close(sshdd->mq_reader);
 			fprintf(stderr, "Cannot create allocation strategy thread\n");
+			return NULL;
 		}
 	}
 
@@ -73,6 +95,8 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 		file_md->mfu_ctr++;
 		//Update the LRU counter
 		file_md->lru_ctr = 0; // TODO : add timestamp
+		// send a message about the update
+		send_msg(file_md, sshdd->mq_writer);
 	}
 
 	// map file id to actual file path
@@ -81,7 +105,7 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 
 	// create a SFILE struct for the file
 	SFILE *sf = malloc(sizeof(SFILE));
-	sf->f = fopen(filename, mode);;
+	sf->f = fopen(filename, mode);
 	sf->file_md = file_md;
 
 	return sf;
@@ -95,6 +119,8 @@ int sshdd_fclose(void *handle, SFILE *fs) {
 	if (sshdd->optimize != 0) {
 		fs->file_md->ref_count--;
 		fs->file_md->lru_ctr = 0; // TODO
+		// send a message about the update
+		//send_msg(fs->file_md, sshdd->mq_writer); // TODO
 	}
 
 	int ret = fclose(fs->f);
@@ -112,6 +138,8 @@ size_t sshdd_fread(void *handle, void *ptr, size_t size, size_t nmemb,
 	if (sshdd->optimize != 0) {
 		fs->file_md->mfu_ctr++;
 		fs->file_md->lru_ctr = 0; // TODO
+		// send a message about the update
+		//send_msg(fs->file_md, sshdd->mq_writer); // TODO
 	}
 
 	return fread(ptr, size, nmemb, fs->f);
@@ -125,6 +153,8 @@ size_t sshdd_fwrite(void *handle, const void *ptr, size_t size, size_t nmemb,
 	if (sshdd->optimize != 0) {
 		fs->file_md->mfu_ctr++;
 		fs->file_md->lru_ctr = 0; // TODO
+		// send a message about the update
+		//send_msg(fs->file_md, sshdd->mq_writer); // TODO
 	}
 
 	return fwrite(ptr, size, nmemb, fs->f);
@@ -146,6 +176,10 @@ int sshdd_terminate(void* handle) {
 	// wait for the allocation strategy thread to stop
 	sshdd->the_end = 1;
 	pthread_join(sshdd->as_thread, NULL);
+
+	// close the message queue
+	mq_close(sshdd->mq_reader);
+	mq_close(sshdd->mq_writer);
 
 	free(sshdd);
 

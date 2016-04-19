@@ -8,12 +8,15 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <mqueue.h>
+#include <errno.h>
 
 #include "constants.h"
 #include "uthash.h"
 #include "file_md.h"
 #include "pqueue.h"
 #include "sshdd.h"
+#include "sshdd_handle.h"
 
 int build_metadata_for_folder(const char *folder, file_loc loc,
 		file_md_t *file_md, file_md_t **ht_head) {
@@ -54,4 +57,15 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 	*ht_head = ht_file_md;
 
 	return i;
+}
+
+int send_msg(void *file_md_ptr, mqd_t mq) {
+	pri_update_msg msg;
+	msg.file_md_ptr = file_md_ptr;
+	int status = mq_send(mq, (char *)&msg, MSG_SIZE, 0);
+	// ignore the error caused due to no space in queue
+	if (status != 0 && errno != 11) {
+		printf("Error in sending message %d:%s\n", errno, strerror(errno));
+	}
+	return status;
 }

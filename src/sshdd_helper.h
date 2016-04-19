@@ -11,4 +11,6 @@
 int build_metadata_for_folder(const char *folder, file_loc loc,
 		file_md_t *file_md, file_md_t **ht_head);
 
+int send_msg(void *file_md_ptr, mqd_t mq);
+
 #endif /* SSHDD_HELPER_H_ */

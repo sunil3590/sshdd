@@ -18,7 +18,6 @@ pqueue_pri_t get_pri(void *a);
 
 void set_pri(void *a, pqueue_pri_t pri);
 
-//TODO: Remove the pos functions
 size_t get_pos(void *a);
 
 void set_pos(void *a, size_t pos);

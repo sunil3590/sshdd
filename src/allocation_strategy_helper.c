@@ -38,7 +38,6 @@ void set_pri(void *a, pqueue_pri_t pri)
 	file_md_ptr->mfu_ctr = pri;
 }
 
-//TODO: Remove the pos functions
 size_t get_pos(void *a)
 {
 	return ((as_node_t *) a)->pos;
