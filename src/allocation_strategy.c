@@ -7,6 +7,7 @@
 #include "pqueue.h"
 #include "file_md.h"
 #include "sshdd.h"
+#include "sshdd_handle.h"
 #include "allocation_strategy_helper.h"
 
 void * allocation_strategy(void *sshdd_handle) {

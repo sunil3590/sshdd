@@ -32,7 +32,7 @@ int profile(profile_what what) {
 	conf.ssd_max_size = 50 * 1024 * 1024;
 	conf.hdd_max_size = 50 * 1024 * 1024;
 
-	sshdd_t* sshdd = NULL;
+	void *sshdd = NULL;
 
 	if (what == DEFAULT_FUNCTIONS) {
 		conf.optimize = 0;

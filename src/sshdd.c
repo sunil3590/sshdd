@@ -9,6 +9,7 @@
 #include "file_md.h"
 #include "pqueue.h"
 #include "sshdd.h"
+#include "sshdd_handle.h"
 #include "allocation_strategy.h"
 #include "sshdd_helper.h"
 #include "sshdd_helper.h"
