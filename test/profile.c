@@ -29,8 +29,8 @@ int profile(profile_what what) {
 	// TODO : test case where
 	// 1. SSD is full
 	// 2. SSD is partially filled
-	conf.ssd_max_size = 3 * 1024;
-	conf.hdd_max_size = 3 * 1024;
+	conf.ssd_max_size = 50 * 1024 * 1024;
+	conf.hdd_max_size = 50 * 1024 * 1024;
 
 	sshdd_t* sshdd = NULL;
 

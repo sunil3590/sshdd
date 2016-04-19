@@ -39,8 +39,6 @@ void * allocation_strategy(void *sshdd_handle) {
 	int hdd_file_ctr = 0, ssd_file_ctr = 0;
 	for (file_md_ptr = head; file_md_ptr != NULL;
 			file_md_ptr = file_md_ptr->hh.next) {
-		printf("file id %s: loc:%d\n", file_md_ptr->fileid, file_md_ptr->loc);
-
 		//Construct the as_node
 		as_node_t *ns = malloc(sizeof(as_node_t));
 		if (!ns)
@@ -63,12 +61,9 @@ void * allocation_strategy(void *sshdd_handle) {
 			return NULL;
 		}
 	}
-	printf("Files added to queues, max_pq[%d], min_pq[%d]", hdd_file_ctr,
-			ssd_file_ctr);
 
-	//Print the priority queues
-	pqueue_print(max_pq, stdout, printq_elem);
-	pqueue_print(min_pq, stdout, printq_elem);
+	printf("Files added to queues : max_pq[%d], min_pq[%d]", hdd_file_ctr,
+			ssd_file_ctr);
 
 	// Periodically move the files from HDD to SSD
 	// based on SSD space and priority queues
@@ -86,10 +81,16 @@ void * allocation_strategy(void *sshdd_handle) {
 		}
 
 		//Get the file size
-		int file_size_hdd = get_file_size(hdd_file_md_ptr->fileid);
+		char fpath[FNAME_SIZE] = {0};
+		snprintf(fpath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
+				hdd_file_md_ptr->fileid);
+		int file_size_hdd = get_file_size(fpath);
 
 		// Check if SSD has enough space
+		printf("FOLDER ");
+		fflush(stdout);
 		int curr_size_ssd = get_folder_size(sshdd->ssd_folder);
+		printf("SIZE\n");
 		// fill SSD part of the algorithm
 		if (sshdd->ssd_max_size > curr_size_ssd + file_size_hdd) {
 			//Pop the max node
@@ -105,11 +106,14 @@ void * allocation_strategy(void *sshdd_handle) {
 			snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 					hdd_file_md_ptr->fileid);
 
+			printf("RE");
+			fflush(stdout);
 			if (rename(srcPath, destPath)) {
 				printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 				//TODO: cleanup (remove locks)
 				continue;//continue to next iteration if this fails
 			} else { // the rename succeeded
+				printf("NAME\n");
 				printf("Successful moving %s HDD->SSD\n", srcPath);
 			}
 
@@ -138,7 +142,9 @@ void * allocation_strategy(void *sshdd_handle) {
 			// TODO : optimize assuming read only FS
 			int curr_size_hdd = get_folder_size(sshdd->hdd_folder);
 			//Get the file size
-			int file_size_ssd = get_file_size(ssd_file_md_ptr->fileid);
+			snprintf(fpath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
+					hdd_file_md_ptr->fileid);
+			int file_size_ssd = get_file_size(fpath);
 
 			int new_sz_hdd = curr_size_hdd + file_size_ssd;
 			int new_sz_ssd = curr_size_ssd - file_size_ssd + file_size_hdd;
@@ -195,11 +201,8 @@ void * allocation_strategy(void *sshdd_handle) {
 
 				//TODO : Unlock the SSD file
 			}
-
 			//TODO : Unlock the HDD file
-
 			sleep(1);
-
 			//TODO: Heapify the priority queues
 		}
 	}

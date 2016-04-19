@@ -37,8 +37,8 @@ void run_simple() {
 	// TODO : test case where
 	// 1. SSD is full
 	// 2. SSD is partially filled
-	conf.ssd_max_size = 3 * 1024;
-	conf.hdd_max_size = 3 * 1024;
+	conf.ssd_max_size = 50 * 1024 * 1024;
+	conf.hdd_max_size = 50 * 1024 * 1024;
 
 	void *sshdd = NULL;
 	sshdd = sshdd_init(&conf);
