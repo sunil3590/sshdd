@@ -210,7 +210,7 @@ void * allocation_strategy(void *sshdd_handle) {
 				//TODO : Unlock the SSD file
 			}
 			//TODO : Unlock the HDD file
-			sleep(1);
+			sleep(10);
 		}
 
 		//TODO: Heapify the priority queues after reading messages

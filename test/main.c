@@ -18,11 +18,13 @@
 #include "main.h"
 
 void usage() {
-	fprintf(stderr, "usage: sshdd <generate / benchmark / profile / simple>\n");
+	fprintf(stderr, "usage: sshdd <generate / benchmark / profile / simple> <1 / 0>\n");
 	fprintf(stderr, "\tgenerate : generates the data files for further testing\n");
 	fprintf(stderr, "\tbenchmark : establish benchmark using default file functions\n");
 	fprintf(stderr, "\tprofile : profile sshdd file functions\n");
 	fprintf(stderr, "\tsimple : simple use case\n");
+	fprintf(stderr, "\t1 : real time simulation\n");
+	fprintf(stderr, "\t0 : as fast as possible\n");
 
 	return;
 }
@@ -72,15 +74,20 @@ int main(int argc, char** argv) {
 
 	if (strcmp(argv[1], "generate") == 0) {
 		generate_files();
-	} else if (strcmp(argv[1], "benchmark") == 0) {
-		profile(DEFAULT_FUNCTIONS);
-	} else if (strcmp(argv[1], "profile") == 0) {
-		profile(SSHDD_FUNCTIONS);
 	} else if (strcmp(argv[1], "simple") == 0) {
 		run_simple();
 	} else {
-		usage();
-		return -1;
+		int real_time = 0;
+		if (strcmp(argv[2], "1") == 0)
+			real_time = 1;
+		if (strcmp(argv[1], "benchmark") == 0) {
+			profile(DEFAULT_FUNCTIONS, real_time);
+		} else if (strcmp(argv[1], "profile") == 0) {
+			profile(SSHDD_FUNCTIONS, real_time);
+		} else {
+			usage();
+			return -1;
+		}
 	}
 
 	return 0;

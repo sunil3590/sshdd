@@ -20,7 +20,7 @@
 #include "request.h"
 #include "profile.h"
 
-int profile(profile_what what) {
+int profile(profile_what what, int real_time) {
 
 	// initialize sshdd
 	sshdd_conf_t conf;
@@ -66,6 +66,9 @@ int profile(profile_what what) {
 		return -1;
 	}
 
+	// remember the first time stamp
+	int start_ts = -1;
+
 	while (!feof(log_file)) {
 		/* status indicator */
 		log_count++;
@@ -79,6 +82,16 @@ int profile(profile_what what) {
 		int method = (int) R->method;
 		int status = ((int) R->status) & 0x3f;
 		int size = R->size;
+
+		// remember the first time stamp
+		if (start_ts == -1) {
+			start_ts = R->timestamp;
+		}
+
+		// simulate real time access
+		if (real_time == 1) {
+			sleep(R->timestamp - start_ts);
+		}
 
 		if (status == SC_200 && method == GET
 				&& size != NO_SIZE && size > 0) {
