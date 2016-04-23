@@ -57,8 +57,8 @@ int generate_files() {
 			char ssd_fname[128];
 			char hdd_fname[128];
 			char* fname = NULL;
-			sprintf(ssd_fname, "%s%d", SSD_FOLDER, R->objectID);
-			sprintf(hdd_fname, "%s%d", HDD_FOLDER, R->objectID);
+			sprintf(ssd_fname, "%s/%d", SSD_FOLDER, R->objectID);
+			sprintf(hdd_fname, "%s/%d", HDD_FOLDER, R->objectID);
 
 			// check if file already exists and get the size of existing file
 			struct stat ssd_st;

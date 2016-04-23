@@ -3,6 +3,7 @@
 #include <mqueue.h>
 
 #include "constants.h"
+#include "uthash.h"
 #include "allocation_strategy.h"
 #include "uthash.h"
 #include "pqueue.h"
@@ -18,6 +19,9 @@ void * allocation_strategy(void *sshdd_handle) {
 	//Create the priority queues for HDD, SSD
 	pqueue_t *max_pq = NULL; //HDD
 	pqueue_t *min_pq = NULL; //SSD
+
+	// create a map of fileid to as_node_t
+	as_node_t *ht_as_node = NULL;
 
 	//Initialize max priority queue (for hdd files)
 	max_pq = pqueue_init(MAX_FILES, cmp_pri_max, get_pri, set_pri, get_pos,
@@ -49,6 +53,7 @@ void * allocation_strategy(void *sshdd_handle) {
 		//Initialize
 		ns->file_md_ptr = file_md_ptr;
 		ns->pos = 0;
+		ns->priority = get_priority(file_md_ptr);
 
 		//Insert
 		if (HDD == file_md_ptr->loc) {
@@ -62,6 +67,9 @@ void * allocation_strategy(void *sshdd_handle) {
 			fflush(stdout);
 			return NULL;
 		}
+
+		// add file_md -> as_node_t mapping
+		HASH_ADD_STR(ht_as_node, file_md_ptr->fileid, ns);
 	}
 
 	printf("Files added to queues : max_pq[%d], min_pq[%d]\n", hdd_file_ctr,
@@ -100,7 +108,7 @@ void * allocation_strategy(void *sshdd_handle) {
 		int file_size_hdd = get_file_size(fpath);
 
 		// Check if SSD has enough space
-		// TODO : takes too much time
+		// TODO : optimize assuming read only FS
 		int curr_size_ssd = get_folder_size(sshdd->ssd_folder);
 		// fill SSD part of the algorithm
 		if (sshdd->ssd_max_size > curr_size_ssd + file_size_hdd) {
@@ -193,7 +201,7 @@ void * allocation_strategy(void *sshdd_handle) {
 				if (rename(srcPath, destPath)) {
 					printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 					//TODO: cleanup (remove locks)
-					//TODO: Rollback the last move
+					//TODO: Roll back the last move
 					continue;//continue to next iteration if this fails
 				} else { // the rename succeeded
 					printf("Successful moving %s HDD->SSD\n", srcPath);
@@ -213,18 +221,27 @@ void * allocation_strategy(void *sshdd_handle) {
 			sleep(10);
 		}
 
-		//TODO: Heapify the priority queues after reading messages
-		int m = 0;
+		// Heapify the priority queues after reading messages
 		while (1) {
+			// receive pending messages
 			bytes_read = mq_receive(sshdd->mq_reader, buffer, MSG_SIZE, NULL);
 			if (bytes_read <= 0)
 				break;
+
+			// parse the message to find file_md and as_node
 			pri_update_msg *msg = (pri_update_msg *)buffer;
 			file_md_t *file_md = msg->file_md_ptr;
-			printf("%s\n", file_md->fileid);
-			m++;
+			char *fileid = file_md->fileid;
+			as_node_t *as_node = NULL;
+
+			HASH_FIND_STR(ht_as_node, fileid, as_node);
+
+			if (file_md->loc == SSD) {
+				pqueue_change_priority(min_pq, get_priority(file_md), as_node);
+			} else {
+				pqueue_change_priority(max_pq, get_priority(file_md), as_node);
+			}
 		}
-		printf("Messages received %d\n", m);
 	}
 
 	// free the queues

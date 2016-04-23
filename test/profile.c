@@ -27,11 +27,8 @@ int profile(profile_what what, int real_time) {
 	sshdd_conf_t conf;
 	conf.ssd_folder = SSD_FOLDER;
 	conf.hdd_folder = HDD_FOLDER;
-	// TODO : test case where
-	// 1. SSD is full
-	// 2. SSD is partially filled
-	conf.ssd_max_size = 50 * 1024 * 1024;
-	conf.hdd_max_size = 50 * 1024 * 1024;
+	conf.ssd_max_size = SSD_SIZE;
+	conf.hdd_max_size = HDD_SIZE;
 
 	void *sshdd = NULL;
 
@@ -97,7 +94,6 @@ int profile(profile_what what, int real_time) {
 				int sim_prog = R->timestamp - sim_start;
 				int delay = sim_prog - run_time;
 				if (delay > 0) {
-					printf("%d sec\n", delay);
 					sleep(delay);
 				}
 			}

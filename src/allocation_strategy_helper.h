@@ -5,6 +5,8 @@ typedef struct as_node_t
 {
 	file_md_t *file_md_ptr;
 	size_t pos;
+	int priority;
+	UT_hash_handle hh;		// makes this structure hashable
 } as_node_t;
 
 
