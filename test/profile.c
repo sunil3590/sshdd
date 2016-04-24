@@ -70,6 +70,10 @@ int profile(profile_what what, int real_time) {
 	time_t run_start = time(NULL);
 	int sim_start = R->timestamp;
 
+	// allocate some memory to hold data read from file
+	char* data = malloc(10 * 1024 * 1024);
+	char* pattern = malloc(10 * 1024 * 1024);
+
 	while (!feof(log_file)) {
 		/* status indicator */
 		log_count++;
@@ -98,37 +102,30 @@ int profile(profile_what what, int real_time) {
 				}
 			}
 
-			// open file
+			// prepare file name and expected data
 			char fileid[128];
 			sprintf(fileid, "%d", R->objectID);
+			memset(pattern, '0' + (R->objectID % 10), size);
+
+			// open, read and close -  file
+			clock_t start = clock() ;
 			void* f = sshdd_fopen(sshdd, fileid, "r");
 			if (f == NULL) {
 				fprintf(stderr, "File open error : %s\n", fileid);
 				continue;
 			}
-
-			// read data
-			char* data = malloc(size);
-			char* pattern = malloc(size);
-			memset(pattern, '0' + (R->objectID % 10), size);
-
-			clock_t start = clock() ;
 			int read = sshdd_fread(sshdd, data, 1, size, f);
-			clock_t end = clock() ;
+			sshdd_fclose(sshdd, f);
+			clock_t end = clock();
 			time_taken += (end - start);
 
+			// check validity of data
 			if (size != read) {
 				fprintf(stderr, "File size error : %s. Expected %d, got %d\n", fileid, size, read);
 			}
 			if ((memcmp(data, pattern, size) != 0)) {
 				fprintf(stderr, "File content error : %s\n", fileid);
 			}
-
-			free(data);
-			free(pattern);
-
-			// close file
-			sshdd_fclose(sshdd, f);
 
 			// metrics
 			bytes_read += size;
@@ -141,6 +138,8 @@ int profile(profile_what what, int real_time) {
 		fread(&BER, sizeof(struct request), 1, log_file);
 	}
 
+	free(data);
+	free(pattern);
 	fclose(log_file);
 
 	/* final count */
