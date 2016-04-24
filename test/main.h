@@ -13,11 +13,8 @@
 #define SSD_FOLDER "./test/output/ssd"
 #define HDD_FOLDER "./test/output/hdd"
 
-// total file size is 83 MB
-	// TODO : test case where
-	// 1. SSD is full
-	// 2. SSD is partially filled
-#define SSD_SIZE 42 * 1024 * 1024
-#define HDD_SIZE 42 * 1024 * 1024
+// total file size is 84 MB
+#define SSD_SIZE 45 * 1024 * 1024
+#define HDD_SIZE 45 * 1024 * 1024
 
 #endif /* MAIN_H_ */

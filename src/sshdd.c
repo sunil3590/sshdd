@@ -101,11 +101,15 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 
 	// map file id to actual file path
 	char filename[FNAME_SIZE];
-	sprintf(filename, "%s%s", folder, fileid);
+	sprintf(filename, "%s/%s", folder, fileid);
 
 	// create a SFILE struct for the file
 	SFILE *sf = malloc(sizeof(SFILE));
 	sf->f = fopen(filename, mode);
+	if (sf->f == NULL) {
+		free(sf);
+		return NULL;
+	}
 	sf->file_md = file_md;
 
 	return sf;
