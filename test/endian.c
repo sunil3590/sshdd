@@ -84,7 +84,7 @@ int CheckEndian()
    else 
      {
        /* unknown endian */
-       fprintf(stderr, "Error: Unknown Endian!\n");
+       printf("Error: Unknown Endian!\n");
        exit(-1);
      }
 

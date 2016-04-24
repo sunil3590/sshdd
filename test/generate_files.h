@@ -8,6 +8,6 @@
 #ifndef GENERATE_FILES_H_
 #define GENERATE_FILES_H_
 
-int generate_files();
+int generate_files(char *ssd_folder, char *hdd_folder);
 
 #endif /* GENERATE_FILES_H_ */

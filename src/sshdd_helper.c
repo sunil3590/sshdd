@@ -25,7 +25,7 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 	DIR *dir = NULL;
 	struct dirent *in_file;
 	if (NULL == (dir = opendir(folder))) {
-		fprintf(stderr, "Failed to open folder : %s for building metadata\n",
+		printf("Failed to open folder : %s for building metadata\n",
 				folder);
 		return 0;
 	}

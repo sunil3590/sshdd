@@ -34,7 +34,7 @@ void* sshdd_init(sshdd_conf_t *conf) {
 			&sshdd->file_md[0], &(sshdd->ht_file_md_head));
 	len += build_metadata_for_folder(conf->hdd_folder, HDD,
 			&sshdd->file_md[len], &(sshdd->ht_file_md_head));
-	fprintf(stderr, "Indexed %d files in total\n", len);
+	printf("Indexed %d files in total\n", len);
 
 	if (sshdd->optimize != 0) {
 		struct mq_attr attr;
@@ -46,12 +46,12 @@ void* sshdd_init(sshdd_conf_t *conf) {
 	    mq_unlink(QUEUE_NAME);
 		sshdd->mq_writer = mq_open(QUEUE_NAME, O_CREAT | O_WRONLY | O_NONBLOCK, 0644, &attr);
 		if (sshdd->mq_writer == -1) {
-			fprintf(stderr, "Cannot create write message queue\n");
+			printf("Cannot create write message queue\n");
 			return NULL;
 		}
 		sshdd->mq_reader = mq_open(QUEUE_NAME, O_RDONLY | O_NONBLOCK);
 		if (sshdd->mq_reader == -1) {
-			fprintf(stderr, "Cannot create read message queue\n");
+			printf("Cannot create read message queue\n");
 			return NULL;
 		}
 		// set up sshdd allocation thread
@@ -60,7 +60,7 @@ void* sshdd_init(sshdd_conf_t *conf) {
 		if (status != 0) {
 			mq_close(sshdd->mq_writer);
 			mq_close(sshdd->mq_reader);
-			fprintf(stderr, "Cannot create allocation strategy thread\n");
+			printf("Cannot create allocation strategy thread\n");
 			return NULL;
 		}
 	}
@@ -174,7 +174,7 @@ int sshdd_terminate(void* handle) {
 
 	// don't terminate if some file is still open
 	if (sshdd->currently_open != 0) {
-		fprintf(stderr, "Cannot terminate, files still open\n");
+		printf("Cannot terminate, files still open\n");
 	}
 
 	// wait for the allocation strategy thread to stop

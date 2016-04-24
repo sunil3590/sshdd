@@ -13,6 +13,6 @@ typedef enum profile_what {
 	SSHDD_FUNCTIONS
 } profile_what;
 
-int profile(profile_what what, int real_time);
+int profile(profile_what what, char *ssd_folder, char *hdd_folder, int real_time);
 
 #endif /* PROFILE_H_ */

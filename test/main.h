@@ -8,10 +8,8 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-// file and folder locations
+// log file
 #define LOG_FILE "./test/input/wc_day23_1"
-#define SSD_FOLDER "./test/output/ssd"
-#define HDD_FOLDER "./test/output/hdd"
 
 // total file size is 84 MB
 #define SSD_SIZE 45 * 1024 * 1024

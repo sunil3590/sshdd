@@ -21,12 +21,12 @@
 #include "request.h"
 #include "profile.h"
 
-int profile(profile_what what, int real_time) {
+int profile(profile_what what, char *ssd_folder, char *hdd_folder, int real_time) {
 
 	// initialize sshdd
 	sshdd_conf_t conf;
-	conf.ssd_folder = SSD_FOLDER;
-	conf.hdd_folder = HDD_FOLDER;
+	conf.ssd_folder = ssd_folder;
+	conf.hdd_folder = hdd_folder;
 	conf.ssd_max_size = SSD_SIZE;
 	conf.hdd_max_size = HDD_SIZE;
 
@@ -39,12 +39,12 @@ int profile(profile_what what, int real_time) {
 		conf.optimize = 1;
 		sshdd = sshdd_init(&conf);
 	} else {
-		fprintf(stderr, "Error: Invalid argument\n");
+		printf("Error: Invalid argument\n");
 		return -1;
 	}
 
 	if (sshdd == NULL) {
-		fprintf(stderr, "Error: Failed to initialize sshdd\n");
+		printf("Error: Failed to initialize sshdd\n");
 		return -1;
 	}
 
@@ -55,12 +55,12 @@ int profile(profile_what what, int real_time) {
 	unsigned long bytes_read = 0;
 	double time_taken = 0;
 
-	fprintf(stderr, "Reading Access Log\n");
+	printf("Reading Access Log\n");
 	FILE *log_file = fopen(LOG_FILE, "rb");
 
 	/* read the initial request */
 	if ((fread(&BER, sizeof(struct request), 1, log_file)) != 1) {
-		fprintf(stderr, "Error: Failed to read initial request!\n");
+		printf("Error: Failed to read initial request!\n");
 		return -1;
 	}
 	LittleEndianRequest(&BER, &LER);
@@ -78,7 +78,7 @@ int profile(profile_what what, int real_time) {
 		/* status indicator */
 		log_count++;
 		if (log_count % 100000 == 0)
-			fprintf(stderr, "Logs analyzed : %d\n", log_count);
+			printf("Logs analyzed : %d\n", log_count);
 
 		LittleEndianRequest(&BER, &LER);
 		R = &LER;
@@ -111,7 +111,7 @@ int profile(profile_what what, int real_time) {
 			clock_t start = clock() ;
 			void* f = sshdd_fopen(sshdd, fileid, "r");
 			if (f == NULL) {
-				fprintf(stderr, "File open error : %s\n", fileid);
+				printf("File open error : %s\n", fileid);
 				continue;
 			}
 			int read = sshdd_fread(sshdd, data, 1, size, f);
@@ -121,17 +121,17 @@ int profile(profile_what what, int real_time) {
 
 			// check validity of data
 			if (size != read) {
-				fprintf(stderr, "File size error : %s. Expected %d, got %d\n", fileid, size, read);
+				printf("File size error : %s. Expected %d, got %d\n", fileid, size, read);
 			}
 			if ((memcmp(data, pattern, size) != 0)) {
-				fprintf(stderr, "File content error : %s\n", fileid);
+				printf("File content error : %s\n", fileid);
 			}
 
 			// metrics
 			bytes_read += size;
 			file_access_count++;
 			if (file_access_count % 100000 == 0)
-				fprintf(stderr, "Files accessed : %d\n", file_access_count);
+				printf("Files accessed : %d\n", file_access_count);
 		}
 
 		/* read the next request */
@@ -143,10 +143,10 @@ int profile(profile_what what, int real_time) {
 	fclose(log_file);
 
 	/* final count */
-	fprintf(stderr, "Total logs analyzed : %d\n", log_count);
-	fprintf(stderr, "Total file access : %d\n", file_access_count);
-	fprintf(stderr, "Total bytes read : %lu\n", bytes_read);
-	fprintf(stderr, "Total time taken : %f sec\n", time_taken  / (double)CLOCKS_PER_SEC);
+	printf("Total logs analyzed : %d\n", log_count);
+	printf("Total file access : %d\n", file_access_count);
+	printf("Total bytes read : %lu\n", bytes_read);
+	printf("Total time taken : %f sec\n", time_taken  / (double)CLOCKS_PER_SEC);
 
 	return 0;
 }

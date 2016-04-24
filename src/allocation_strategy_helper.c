@@ -51,7 +51,7 @@ int get_folder_size(char *folder) {
 	DIR *dir = NULL;
 	struct dirent *in_file;
 	if (NULL == (dir = opendir(folder))) {
-		fprintf(stderr, "Failed to open folder : %s for building metadata\n",
+		printf("Failed to open folder : %s for building metadata\n",
 				folder);
 		return 0;
 	}
