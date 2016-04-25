@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <mqueue.h>
+#include <stdlib.h>
 
 #include "constants.h"
 #include "uthash.h"
@@ -41,8 +42,8 @@ void * allocation_strategy(void *sshdd_handle) {
 	//Add files to the two queues by iterating the hash table
 	file_md_t *head = sshdd->ht_file_md_head;
 	file_md_t *file_md_ptr;
-
-	int hdd_file_ctr = 0, ssd_file_ctr = 0;
+	int hdd_file_ctr = 0;
+	int ssd_file_ctr = 0;
 	for (file_md_ptr = head; file_md_ptr != NULL;
 			file_md_ptr = file_md_ptr->hh.next) {
 		//Construct the as_node
@@ -86,6 +87,10 @@ void * allocation_strategy(void *sshdd_handle) {
 			break;
 	}
 
+	// metrics on moving the files
+	int num_file_moves = 0;
+	int num_file_swaps = 0;
+
 	// Periodically move the files from HDD to SSD
 	// based on SSD space and priority queues
 	while (sshdd->the_end == 0) {
@@ -125,12 +130,13 @@ void * allocation_strategy(void *sshdd_handle) {
 			snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 					hdd_file_md_ptr->fileid);
 
-			if (rename(srcPath, destPath)) {
+			// string to hold move command
+			char command[2 * FNAME_SIZE + 8];
+			sprintf(command, "mv %s %s", srcPath, destPath);
+			if (system(command) == -1) {
 				printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 				//TODO: cleanup (remove locks)
 				continue;//continue to next iteration if this fails
-			} else { // the rename succeeded
-				printf("Successful moving %s HDD->SSD\n", srcPath);
 			}
 
 			//Update the file metadata structure inside the nodes
@@ -138,6 +144,8 @@ void * allocation_strategy(void *sshdd_handle) {
 
 			//Put the node into min_pq
 			pqueue_insert(min_pq, max_pq_node);
+
+			num_file_moves++;
 
 			// TODO : Unlock hdd peeked file
 		} else { // swap between SSD and HDD part of the algorithm
@@ -169,8 +177,7 @@ void * allocation_strategy(void *sshdd_handle) {
 			//And SSD has space to hold the new file
 			if ((new_sz_hdd < sshdd->hdd_max_size)
 					&& (new_sz_ssd < sshdd->ssd_max_size)) {
-				printf("Files can be interchanged within hdd, ssd caps\n");
-				printf("Pop the top nodes from both hdd, ssd pri queues\n");
+
 				//Pop the two nodes
 				max_pq_node = pqueue_pop(max_pq);
 				min_pq_node = pqueue_pop(min_pq);
@@ -184,12 +191,13 @@ void * allocation_strategy(void *sshdd_handle) {
 				snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 						ssd_file_md_ptr->fileid);
 
-				if (rename(srcPath, destPath)) {
+				// string to hold move command
+				char command[2 * FNAME_SIZE + 8];
+				sprintf(command, "mv %s %s", srcPath, destPath);
+				if (system(command) == -1) {
 					printf("ERROR moving %s SSD->HDD\n", srcPath);// something went wrong
 					//TODO: cleanup (remove locks)
 					continue;//continue to next iteration if this fails
-				} else { // the rename succeeded
-					printf("Successful moving %s SSD->HDD\n", srcPath);
 				}
 
 				//Move the file from HDD to SSD
@@ -198,13 +206,13 @@ void * allocation_strategy(void *sshdd_handle) {
 				snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
 						hdd_file_md_ptr->fileid);
 
-				if (rename(srcPath, destPath)) {
+				// string to hold move command
+				sprintf(command, "mv %s %s", srcPath, destPath);
+				if (system(command) == -1) {
 					printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
 					//TODO: cleanup (remove locks)
 					//TODO: Roll back the last move
 					continue;//continue to next iteration if this fails
-				} else { // the rename succeeded
-					printf("Successful moving %s HDD->SSD\n", srcPath);
 				}
 
 				//Update the file metadata structure inside the nodes
@@ -215,8 +223,16 @@ void * allocation_strategy(void *sshdd_handle) {
 				pqueue_insert(max_pq, min_pq_node);
 				pqueue_insert(min_pq, max_pq_node);
 
+				num_file_swaps++;
+
 				//TODO : Unlock the SSD file
+			} else {
+				printf("sshdd->hdd_max_size = %d\n", sshdd->hdd_max_size);
+				printf("new_sz_hdd = %d\n", new_sz_hdd);
+				printf("sshdd->ssd_max_size = %d\n", sshdd->ssd_max_size);
+				printf("new_sz_ssd = %d\n", new_sz_ssd);
 			}
+
 			//TODO : Unlock the HDD file
 			sleep(10);
 		}
@@ -254,6 +270,10 @@ void * allocation_strategy(void *sshdd_handle) {
 		free(pqueue_pop(min_pq));
 	}
 	pqueue_free(min_pq);
+
+	// print metrics
+	printf("Free SSD->HDD moves = %d\n", num_file_moves);
+	printf("Swaps between SSD & HDD = %d\n", num_file_swaps);
 
 	return NULL;
 }
