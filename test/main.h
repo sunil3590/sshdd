@@ -12,7 +12,7 @@
 #define LOG_FILE "./test/input/wc_day23_1"
 
 // total file size is 84 MB
-#define SSD_SIZE 45 * 1024 * 1024
-#define HDD_SIZE 45 * 1024 * 1024
+#define SSD_SIZE 15 * 1000 * 1000
+#define HDD_SIZE 75 * 1000 * 1000
 
 #endif /* MAIN_H_ */

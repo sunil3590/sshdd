@@ -20,7 +20,7 @@ File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html.
 
 ### Important
 To increase the number the messages that can be held in message queue 
-`sudo sh -c "echo 8000 > /proc/sys/fs/mqueue/msg_max"
+`sudo sh -c 'echo 8000 > /proc/sys/fs/mqueue/msg_max'`
 
 ### Dependencies
 1. libpqueue

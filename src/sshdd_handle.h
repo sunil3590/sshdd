@@ -12,7 +12,7 @@ typedef struct pri_update_msg pri_update_msg;
 
 #define QUEUE_NAME "/sshdd_queue"
 #define MSG_SIZE sizeof(pri_update_msg)
-#define NUM_MSGS 10//7500
+#define NUM_MSGS 7500
 
 typedef struct sshdd_t {
 	int optimize; // should the algorithm be run?
