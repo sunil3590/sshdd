@@ -99,7 +99,7 @@ void * allocation_strategy(void *sshdd_handle) {
 		max_pq_node = pqueue_peek(max_pq);
 		file_md_t *hdd_file_md_ptr = max_pq_node->file_md_ptr;
 
-		// TODO : lock hdd peeked file
+		// TODO : lock the HDD file before using its metadata
 
 		//Check if the file is open
 		if (hdd_file_md_ptr->ref_count) {
@@ -135,8 +135,7 @@ void * allocation_strategy(void *sshdd_handle) {
 			sprintf(command, "mv %s %s", srcPath, destPath);
 			if (system(command) == -1) {
 				printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
-				//TODO: cleanup (remove locks)
-				continue;//continue to next iteration if this fails
+				continue; //continue to next iteration if this fails
 			}
 
 			//Update the file metadata structure inside the nodes
@@ -147,7 +146,6 @@ void * allocation_strategy(void *sshdd_handle) {
 
 			num_file_moves++;
 
-			// TODO : Unlock hdd peeked file
 		} else { // swap between SSD and HDD part of the algorithm
 			// There is not enough space in SSD
 			// See if some file from SSD can be swapped
@@ -156,7 +154,7 @@ void * allocation_strategy(void *sshdd_handle) {
 			min_pq_node = pqueue_peek(min_pq);
 			file_md_t *ssd_file_md_ptr = min_pq_node->file_md_ptr;
 
-			// TODO : lock ssd peeked file
+			// TODO : lock the SSD file before using its metadata
 
 			//Check if the file is open
 			if (ssd_file_md_ptr->ref_count) {
@@ -195,9 +193,8 @@ void * allocation_strategy(void *sshdd_handle) {
 				char command[2 * FNAME_SIZE + 8];
 				sprintf(command, "mv %s %s", srcPath, destPath);
 				if (system(command) == -1) {
-					printf("ERROR moving %s SSD->HDD\n", srcPath);// something went wrong
-					//TODO: cleanup (remove locks)
-					continue;//continue to next iteration if this fails
+					printf("ERROR moving %s SSD->HDD\n", srcPath);
+					continue;
 				}
 
 				//Move the file from HDD to SSD
@@ -209,10 +206,9 @@ void * allocation_strategy(void *sshdd_handle) {
 				// string to hold move command
 				sprintf(command, "mv %s %s", srcPath, destPath);
 				if (system(command) == -1) {
-					printf("ERROR moving %s HDD->SSD\n", srcPath); // something went wrong
-					//TODO: cleanup (remove locks)
+					printf("ERROR moving %s HDD->SSD\n", srcPath);
 					//TODO: Roll back the last move
-					continue;//continue to next iteration if this fails
+					continue;
 				}
 
 				//Update the file metadata structure inside the nodes
@@ -225,15 +221,10 @@ void * allocation_strategy(void *sshdd_handle) {
 
 				num_file_swaps++;
 
-				//TODO : Unlock the SSD file
 			} else {
-				printf("sshdd->hdd_max_size = %d\n", sshdd->hdd_max_size);
-				printf("new_sz_hdd = %d\n", new_sz_hdd);
-				printf("sshdd->ssd_max_size = %d\n", sshdd->ssd_max_size);
-				printf("new_sz_ssd = %d\n", new_sz_ssd);
+				printf("Error : Not enough space to swap\n");
 			}
 
-			//TODO : Unlock the HDD file
 			sleep(10);
 		}
 
