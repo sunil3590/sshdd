@@ -45,7 +45,7 @@ int build_metadata_for_folder(const char *folder, file_loc loc,
 		snprintf(cur_file_md->fileid, FNAME_SMALL_SIZE, "%s", in_file->d_name);
 		cur_file_md->loc = loc;
 		cur_file_md->mfu_ctr = 0;
-		cur_file_md->lru_ctr = 0;
+		// cur_file_md->lru_ctr = 0;
 		cur_file_md->ref_count = 0;
 
 		// add fileid -> file_md mapping

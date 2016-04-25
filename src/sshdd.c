@@ -94,7 +94,7 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 		//Increment the MFU counter
 		file_md->mfu_ctr++;
 		//Update the LRU counter
-		file_md->lru_ctr = 0; // TODO : add timestamp
+		// file_md->lru_ctr = 0;
 		// send a message about the update
 		send_msg(file_md, sshdd->mq_writer);
 	}
@@ -122,9 +122,7 @@ int sshdd_fclose(void *handle, SFILE *fs) {
 	//Update the statistics, if the optimize is enabled
 	if (sshdd->optimize != 0) {
 		fs->file_md->ref_count--;
-		fs->file_md->lru_ctr = 0; // TODO
-		// send a message about the update
-		//send_msg(fs->file_md, sshdd->mq_writer); // TODO
+		// fs->file_md->lru_ctr = 0;
 	}
 
 	int ret = fclose(fs->f);
@@ -141,9 +139,7 @@ size_t sshdd_fread(void *handle, void *ptr, size_t size, size_t nmemb,
 	//Update the statistics, if the optimize is enabled
 	if (sshdd->optimize != 0) {
 		fs->file_md->mfu_ctr++;
-		fs->file_md->lru_ctr = 0; // TODO
-		// send a message about the update
-		//send_msg(fs->file_md, sshdd->mq_writer); // TODO
+		// fs->file_md->lru_ctr = 0;
 	}
 
 	return fread(ptr, size, nmemb, fs->f);
@@ -156,20 +152,13 @@ size_t sshdd_fwrite(void *handle, const void *ptr, size_t size, size_t nmemb,
 	//Update the statistics, if the optimize is enabled
 	if (sshdd->optimize != 0) {
 		fs->file_md->mfu_ctr++;
-		fs->file_md->lru_ctr = 0; // TODO
-		// send a message about the update
-		//send_msg(fs->file_md, sshdd->mq_writer); // TODO
+		// fs->file_md->lru_ctr = 0;
 	}
 
 	return fwrite(ptr, size, nmemb, fs->f);
 }
 
 int sshdd_terminate(void* handle) {
-	// TODO : perform basic checking before terminating,
-	// also, print statistics before terminating
-	// close everything tht was opened in init function
-	// end the allocation_strategy thread
-
 	sshdd_t* sshdd = handle;
 
 	// don't terminate if some file is still open
