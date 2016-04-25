@@ -225,7 +225,7 @@ void * allocation_strategy(void *sshdd_handle) {
 				printf("Error : Not enough space to swap\n");
 			}
 
-			sleep(10);
+			sleep(1);
 		}
 
 		// Heapify the priority queues after reading messages

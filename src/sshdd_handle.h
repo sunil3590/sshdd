@@ -30,6 +30,9 @@ typedef struct sshdd_t {
 	mqd_t mq_reader;
 	mqd_t mq_writer;
 	int the_end;
+
+	int ssd_hit;
+	int hdd_hit;
 } sshdd_t;
 
 typedef struct SFILE {

@@ -67,9 +67,11 @@ int generate_files(char *ssd_folder, char *hdd_folder) {
 			int ssd_val = stat(ssd_fname, &ssd_st);
 			int hdd_val = stat(hdd_fname, &hdd_st);
 			if (ssd_val == 0) {
+				// file exists in SSD
 				old_size = ssd_st.st_size;
 				fname = ssd_fname;
 			} else if (hdd_val == 0) {
+				// file exists in HDD
 				old_size = hdd_st.st_size;
 				fname = hdd_fname;
 			} else {
@@ -79,7 +81,7 @@ int generate_files(char *ssd_folder, char *hdd_folder) {
 					printf("File count : %d\n", file_count);
 
 				old_size = 0;
-				if (bytes_written < SSD_SIZE) {
+				if (bytes_written > HDD_SIZE) {
 					fname = ssd_fname;
 				} else {
 					fname = hdd_fname;

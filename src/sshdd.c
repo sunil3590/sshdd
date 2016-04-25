@@ -83,8 +83,10 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 	char *folder = NULL;
 	if (file_md->loc == SSD) {
 		folder = sshdd->ssd_folder;
+		sshdd->ssd_hit++;
 	} else {
 		folder = sshdd->hdd_folder;
+		sshdd->hdd_hit++;
 	}
 
 	//Update the statistics, if the optimize is enabled
@@ -96,7 +98,9 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 		//Update the LRU counter
 		// file_md->lru_ctr = 0;
 		// send a message about the update
-		send_msg(file_md, sshdd->mq_writer);
+		if (file_md->mfu_ctr % 10 == 0) {
+			send_msg(file_md, sshdd->mq_writer);
+		}
 	}
 
 	// map file id to actual file path
@@ -166,13 +170,19 @@ int sshdd_terminate(void* handle) {
 		printf("Cannot terminate, files still open\n");
 	}
 
-	// wait for the allocation strategy thread to stop
-	sshdd->the_end = 1;
-	pthread_join(sshdd->as_thread, NULL);
+	if (sshdd->optimize != 0) {
+		// wait for the allocation strategy thread to stop
+		sshdd->the_end = 1;
+		pthread_join(sshdd->as_thread, NULL);
 
-	// close the message queue
-	mq_close(sshdd->mq_reader);
-	mq_close(sshdd->mq_writer);
+		// close the message queue
+		mq_close(sshdd->mq_reader);
+		mq_close(sshdd->mq_writer);
+	}
+
+	// print some metrics
+	printf("SSD hit = %d\n", sshdd->ssd_hit);
+	printf("HDD hit = %d\n", sshdd->hdd_hit);
 
 	free(sshdd);
 

@@ -138,9 +138,11 @@ int profile(profile_what what, char *ssd_folder, char *hdd_folder, int real_time
 		fread(&BER, sizeof(struct request), 1, log_file);
 	}
 
+	// terminate
 	free(data);
 	free(pattern);
 	fclose(log_file);
+	sshdd_terminate(sshdd);
 
 	/* final count */
 	printf("Total logs analyzed : %d\n", log_count);
