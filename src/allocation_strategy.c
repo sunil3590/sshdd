@@ -54,7 +54,7 @@ void * allocation_strategy(void *sshdd_handle) {
 		//Initialize
 		ns->file_md_ptr = file_md_ptr;
 		ns->pos = 0;
-		ns->priority = get_priority(file_md_ptr);
+		ns->priority = get_md_priority(file_md_ptr);
 
 		//Insert
 		if (HDD == file_md_ptr->loc) {
@@ -87,27 +87,59 @@ void * allocation_strategy(void *sshdd_handle) {
 			break;
 	}
 
-	// metrics on moving the files
+	// some metrics
 	int num_file_moves = 0;
 	int num_file_swaps = 0;
+	int num_msgs_recv = 0;
 
 	// Periodically move the files from HDD to SSD
 	// based on SSD space and priority queues
 	while (sshdd->the_end == 0) {
+
+		// Heapify the priority queues after reading messages
+		while (1) {
+			// receive pending messages
+			bytes_read = mq_receive(sshdd->mq_reader, buffer, MSG_SIZE, NULL);
+			if (bytes_read <= 0)
+				break;
+
+			// parse the message to find file_md and as_node
+			pri_update_msg *msg = (pri_update_msg *)buffer;
+			file_md_t *file_md = msg->file_md_ptr;
+			char *fileid = file_md->fileid;
+			as_node_t *as_node = NULL;
+
+			HASH_FIND_STR(ht_as_node, fileid, as_node);
+
+			if (file_md->loc == SSD) {
+				pqueue_change_priority(min_pq, get_md_priority(file_md), as_node);
+			} else {
+				pqueue_change_priority(max_pq, get_md_priority(file_md), as_node);
+			}
+
+			num_msgs_recv++;
+		}
+
 		//Peek the top node from HDD
 		as_node_t *max_pq_node;
 		max_pq_node = pqueue_peek(max_pq);
 		file_md_t *hdd_file_md_ptr = max_pq_node->file_md_ptr;
 
+		// wait for priority to be high before swapping
+		if (get_pri(max_pq_node) < 1) {
+			usleep(SLEEP_DUR);
+			continue;
+		}
+
 		// TODO : lock the HDD file before using its metadata
 
 		//Check if the file is open
-		if (hdd_file_md_ptr->ref_count) {
-			continue; //File is open
+		if (hdd_file_md_ptr->ref_count > 0) {
+			continue; // File is open
 		}
 
 		//Get the file size
-		char fpath[FNAME_SIZE] = { 0 };
+		char fpath[FNAME_SIZE] = {0};
 		snprintf(fpath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 				hdd_file_md_ptr->fileid);
 		int file_size_hdd = get_file_size(fpath);
@@ -122,8 +154,8 @@ void * allocation_strategy(void *sshdd_handle) {
 			hdd_file_md_ptr = max_pq_node->file_md_ptr;
 
 			//Move the file from HDD to SSD
-			char srcPath[FNAME_SIZE] = { 0 };
-			char destPath[FNAME_SIZE] = { 0 };
+			char srcPath[FNAME_SIZE] = {0};
+			char destPath[FNAME_SIZE] = {0};
 
 			snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 					hdd_file_md_ptr->fileid);
@@ -156,9 +188,9 @@ void * allocation_strategy(void *sshdd_handle) {
 
 			// TODO : lock the SSD file before using its metadata
 
-			//Check if the file is open
-			if (ssd_file_md_ptr->ref_count) {
-				continue; //File is open
+			// Check if the file is open
+			if (ssd_file_md_ptr->ref_count > 0) {
+				continue; // File is open
 			}
 
 			//Get the file size
@@ -210,29 +242,7 @@ void * allocation_strategy(void *sshdd_handle) {
 
 			num_file_swaps++;
 
-			sleep(1);
-		}
-
-		// Heapify the priority queues after reading messages
-		while (1) {
-			// receive pending messages
-			bytes_read = mq_receive(sshdd->mq_reader, buffer, MSG_SIZE, NULL);
-			if (bytes_read <= 0)
-				break;
-
-			// parse the message to find file_md and as_node
-			pri_update_msg *msg = (pri_update_msg *)buffer;
-			file_md_t *file_md = msg->file_md_ptr;
-			char *fileid = file_md->fileid;
-			as_node_t *as_node = NULL;
-
-			HASH_FIND_STR(ht_as_node, fileid, as_node);
-
-			if (file_md->loc == SSD) {
-				pqueue_change_priority(min_pq, get_priority(file_md), as_node);
-			} else {
-				pqueue_change_priority(max_pq, get_priority(file_md), as_node);
-			}
+			usleep(SLEEP_DUR);
 		}
 	}
 
@@ -250,6 +260,7 @@ void * allocation_strategy(void *sshdd_handle) {
 	// print metrics
 	printf("Free SSD->HDD moves = %d\n", num_file_moves);
 	printf("Swaps between SSD & HDD = %d\n", num_file_swaps);
+	printf("Msgs reveiced = %d\n", num_msgs_recv);
 
 	return NULL;
 }

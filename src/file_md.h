@@ -24,6 +24,6 @@ typedef struct file_md_t {
     UT_hash_handle hh;				// makes this structure hashable
 } file_md_t;
 
-int get_priority(file_md_t *file_md);
+int get_md_priority(file_md_t *file_md);
 
 #endif /* FILE_MD_H_ */

@@ -28,6 +28,9 @@ void* sshdd_init(sshdd_conf_t *conf) {
 	sshdd->ssd_max_size = conf->ssd_max_size;
 	sshdd->hdd_max_size = conf->hdd_max_size;
 	sshdd->the_end = 0;
+	sshdd->ssd_hit = 0;
+	sshdd->hdd_hit = 0;
+	sshdd->num_msgs_sent = 0;
 
 	// index all files in HDD and SSD folders
 	int len = build_metadata_for_folder(conf->ssd_folder, SSD,
@@ -72,7 +75,6 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 	// TODO : cannot open a file which is currently getting moved, LOCK
 
 	sshdd_t* sshdd = handle;
-	sshdd->currently_open++;
 
 	// Get file_md object from hash table
 	file_md_t *ht_file_md = sshdd->ht_file_md_head;
@@ -89,6 +91,19 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 		sshdd->hdd_hit++;
 	}
 
+	// map file id to actual file path
+	char filename[FNAME_SIZE];
+	sprintf(filename, "%s/%s", folder, fileid);
+
+	// create a SFILE struct for the file
+	SFILE *sf = malloc(sizeof(SFILE));
+	sf->file_md = file_md;
+	sf->f = fopen(filename, mode);
+	if (sf->f == NULL) {
+		free(sf);
+		return NULL;
+	}
+
 	//Update the statistics, if the optimize is enabled
 	if (sshdd->optimize != 0) {
 		// keep a count of how many times a file is open
@@ -98,38 +113,30 @@ SFILE* sshdd_fopen(void *handle, const char *fileid, const char *mode) {
 		//Update the LRU counter
 		// file_md->lru_ctr = 0;
 		// send a message about the update
-		if (file_md->mfu_ctr % 10 == 0) {
+		if (file_md->mfu_ctr % 100 == 0) {
 			send_msg(file_md, sshdd->mq_writer);
+			sshdd->num_msgs_sent++;
 		}
 	}
 
-	// map file id to actual file path
-	char filename[FNAME_SIZE];
-	sprintf(filename, "%s/%s", folder, fileid);
-
-	// create a SFILE struct for the file
-	SFILE *sf = malloc(sizeof(SFILE));
-	sf->f = fopen(filename, mode);
-	if (sf->f == NULL) {
-		free(sf);
-		return NULL;
-	}
-	sf->file_md = file_md;
+	sshdd->currently_open++;
 
 	return sf;
 }
 
 int sshdd_fclose(void *handle, SFILE *fs) {
 	sshdd_t* sshdd = handle;
-	sshdd->currently_open--;
+
+	int ret = fclose(fs->f);
+	if (ret != 0) {
+		return ret;
+	}
 
 	//Update the statistics, if the optimize is enabled
 	if (sshdd->optimize != 0) {
 		fs->file_md->ref_count--;
-		// fs->file_md->lru_ctr = 0;
 	}
-
-	int ret = fclose(fs->f);
+	sshdd->currently_open--;
 
 	free(fs);
 
@@ -138,36 +145,24 @@ int sshdd_fclose(void *handle, SFILE *fs) {
 
 size_t sshdd_fread(void *handle, void *ptr, size_t size, size_t nmemb,
 		SFILE *fs) {
-	sshdd_t* sshdd = handle;
-
-	//Update the statistics, if the optimize is enabled
-	if (sshdd->optimize != 0) {
-		fs->file_md->mfu_ctr++;
-		// fs->file_md->lru_ctr = 0;
-	}
 
 	return fread(ptr, size, nmemb, fs->f);
 }
 
 size_t sshdd_fwrite(void *handle, const void *ptr, size_t size, size_t nmemb,
 		SFILE *fs) {
-	sshdd_t* sshdd = handle;
-
-	//Update the statistics, if the optimize is enabled
-	if (sshdd->optimize != 0) {
-		fs->file_md->mfu_ctr++;
-		// fs->file_md->lru_ctr = 0;
-	}
 
 	return fwrite(ptr, size, nmemb, fs->f);
 }
 
 int sshdd_terminate(void* handle) {
+
 	sshdd_t* sshdd = handle;
 
 	// don't terminate if some file is still open
 	if (sshdd->currently_open != 0) {
 		printf("Cannot terminate, files still open\n");
+		return -1;
 	}
 
 	if (sshdd->optimize != 0) {
@@ -183,6 +178,7 @@ int sshdd_terminate(void* handle) {
 	// print some metrics
 	printf("SSD hit = %d\n", sshdd->ssd_hit);
 	printf("HDD hit = %d\n", sshdd->hdd_hit);
+	printf("Msgs sent = %d\n", sshdd->num_msgs_sent);
 
 	free(sshdd);
 

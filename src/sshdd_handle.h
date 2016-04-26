@@ -33,6 +33,7 @@ typedef struct sshdd_t {
 
 	int ssd_hit;
 	int hdd_hit;
+	int num_msgs_sent;
 } sshdd_t;
 
 typedef struct SFILE {

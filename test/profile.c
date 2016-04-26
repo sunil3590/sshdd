@@ -95,8 +95,8 @@ int profile(profile_what what, char *ssd_folder, char *hdd_folder, int real_time
 			if (real_time == 1) {
 				time_t run_cur = time(NULL);
 				time_t run_time = run_cur - run_start;
-				int sim_prog = R->timestamp - sim_start;
-				int delay = sim_prog - run_time;
+				int sim_time = R->timestamp - sim_start;
+				int delay = (sim_time - run_time) / TIME_FACTOR;
 				if (delay > 0) {
 					sleep(delay);
 				}

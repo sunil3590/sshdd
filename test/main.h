@@ -11,8 +11,11 @@
 // log file
 #define LOG_FILE "./test/input/wc_day23_1"
 
-// total file size is 84 MB
-#define SSD_SIZE 10 * 1000 * 1000
+// total file size is 83.4 MB
+#define SSD_SIZE 8.4 * 1000 * 1000
 #define HDD_SIZE 75 * 1000 * 1000
+
+// time factor for real time simualtion
+#define TIME_FACTOR 24
 
 #endif /* MAIN_H_ */

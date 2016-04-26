@@ -39,3 +39,6 @@ Release/
 
 # Log files
 *.log
+
+# Fuse hidden files
+.fuse_hidden*
