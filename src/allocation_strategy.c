@@ -161,69 +161,54 @@ void * allocation_strategy(void *sshdd_handle) {
 				continue; //File is open
 			}
 
-			// TODO : optimize assuming read only FS
-			int curr_size_hdd = get_folder_size(sshdd->hdd_folder);
 			//Get the file size
 			snprintf(fpath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
 					hdd_file_md_ptr->fileid);
-			int file_size_ssd = get_file_size(fpath);
 
-			int new_sz_hdd = curr_size_hdd + file_size_ssd;
-			int new_sz_ssd = curr_size_ssd - file_size_ssd + file_size_hdd;
+			//Pop the two nodes
+			max_pq_node = pqueue_pop(max_pq);
+			min_pq_node = pqueue_pop(min_pq);
 
-			//Check if HDD has enough space to hold both files
-			//And SSD has space to hold the new file
-			if ((new_sz_hdd < sshdd->hdd_max_size)
-					&& (new_sz_ssd < sshdd->ssd_max_size)) {
+			//Move the file from SSD to HDD
+			char srcPath[FNAME_SIZE] = { 0 };
+			char destPath[FNAME_SIZE] = { 0 };
 
-				//Pop the two nodes
-				max_pq_node = pqueue_pop(max_pq);
-				min_pq_node = pqueue_pop(min_pq);
+			snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
+					ssd_file_md_ptr->fileid);
+			snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
+					ssd_file_md_ptr->fileid);
 
-				//Move the file from SSD to HDD
-				char srcPath[FNAME_SIZE] = { 0 };
-				char destPath[FNAME_SIZE] = { 0 };
-
-				snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
-						ssd_file_md_ptr->fileid);
-				snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
-						ssd_file_md_ptr->fileid);
-
-				// string to hold move command
-				char command[2 * FNAME_SIZE + 8];
-				sprintf(command, "mv %s %s", srcPath, destPath);
-				if (system(command) == -1) {
-					printf("ERROR moving %s SSD->HDD\n", srcPath);
-					continue;
-				}
-
-				//Move the file from HDD to SSD
-				snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
-						hdd_file_md_ptr->fileid);
-				snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
-						hdd_file_md_ptr->fileid);
-
-				// string to hold move command
-				sprintf(command, "mv %s %s", srcPath, destPath);
-				if (system(command) == -1) {
-					printf("ERROR moving %s HDD->SSD\n", srcPath);
-					//TODO: Roll back the last move
-					continue;
-				}
-
-				//Update the file metadata structure inside the nodes
-				hdd_file_md_ptr->loc = SSD; //Change location from HDD to SSD
-				ssd_file_md_ptr->loc = HDD; //Change location from SSD to HDD
-
-				//Put the node into min_pq
-				pqueue_insert(max_pq, min_pq_node);
-				pqueue_insert(min_pq, max_pq_node);
-
-				num_file_swaps++;
-
-			} else {
-				printf("Error : Not enough space to swap\n");
+			// string to hold move command
+			char command[2 * FNAME_SIZE + 8];
+			sprintf(command, "mv %s %s", srcPath, destPath);
+			if (system(command) == -1) {
+				printf("ERROR moving %s SSD->HDD\n", srcPath);
+				continue;
 			}
+
+			//Move the file from HDD to SSD
+			snprintf(srcPath, FNAME_SIZE, "%s/%s", sshdd->hdd_folder,
+					hdd_file_md_ptr->fileid);
+			snprintf(destPath, FNAME_SIZE, "%s/%s", sshdd->ssd_folder,
+					hdd_file_md_ptr->fileid);
+
+			// string to hold move command
+			sprintf(command, "mv %s %s", srcPath, destPath);
+			if (system(command) == -1) {
+				printf("ERROR moving %s HDD->SSD\n", srcPath);
+				//TODO: Roll back the last move
+				continue;
+			}
+
+			//Update the file metadata structure inside the nodes
+			hdd_file_md_ptr->loc = SSD; //Change location from HDD to SSD
+			ssd_file_md_ptr->loc = HDD; //Change location from SSD to HDD
+
+			//Put the node into min_pq
+			pqueue_insert(max_pq, min_pq_node);
+			pqueue_insert(min_pq, max_pq_node);
+
+			num_file_swaps++;
 
 			sleep(1);
 		}
