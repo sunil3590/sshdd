@@ -30,3 +30,6 @@ cd libpqueue/src
 gcc -c pqueue.c -o pqueue.o
 ar rcs libpqueue.a pqueue.o
 ```
+
+### Results
+Increased the read throughput by approximately 50% when compared to a static allocation strategy
