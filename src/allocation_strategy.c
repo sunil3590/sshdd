@@ -258,8 +258,9 @@ void * allocation_strategy(void *sshdd_handle) {
 	pqueue_free(min_pq);
 
 	// print metrics
-	printf("Free SSD->HDD moves = %d\n", num_file_moves);
-	printf("Swaps between SSD & HDD = %d\n", num_file_swaps);
+	// printf("Move SSD -> HDD = %d\n", num_file_moves);
+	// printf("Swaps between SSD & HDD = %d\n", num_file_swaps);
+	printf("Total file moves = %d\n", num_file_moves + num_file_swaps);
 	printf("Msgs reveiced = %d\n", num_msgs_recv);
 
 	return NULL;

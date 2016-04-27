@@ -173,12 +173,14 @@ int sshdd_terminate(void* handle) {
 		// close the message queue
 		mq_close(sshdd->mq_reader);
 		mq_close(sshdd->mq_writer);
+
+		// print some metrics
+		printf("Msgs sent = %d\n", sshdd->num_msgs_sent);
 	}
 
 	// print some metrics
 	printf("SSD hit = %d\n", sshdd->ssd_hit);
 	printf("HDD hit = %d\n", sshdd->hdd_hit);
-	printf("Msgs sent = %d\n", sshdd->num_msgs_sent);
 
 	free(sshdd);
 

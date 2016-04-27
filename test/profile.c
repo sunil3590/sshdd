@@ -111,7 +111,7 @@ int profile(profile_what what, char *ssd_folder, char *hdd_folder, int real_time
 			clock_t start = clock() ;
 			void* f = sshdd_fopen(sshdd, fileid, "r");
 			if (f == NULL) {
-				printf("File open error : %s\n", fileid);
+				// printf("File open error : %s\n", fileid); TODO
 				continue;
 			}
 			int read = sshdd_fread(sshdd, data, 1, size, f);
