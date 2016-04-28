@@ -6,21 +6,19 @@ Files are moved between SSD and HDD without the user's knowledge with a goal to 
 ### Algorithm
 * Maps file ID to physical file path
 * SSD is always kept full
+* Keep hot files on SSD
 * Makes use of least recently used and most frequently used
-* File swaps between SSD and HDD are made only when the scores differ by a threshold
+* File swaps between SSD and HDD are made only when the priority differ by a threshold
 
 ### Testing
 File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html. All files in the access pattern data set are generated and the access pattern is simulated to study the performance gain in terms of time take to read all files in the access pattern.
 
 ### TODO
-* Real time simulation
-* Aggregate priority updates and re heapify
-* Add locking mechanism
-* Ensure the profiler does not read files out of RAM from the second time a file is accessed
+* Add locking mechanism while modifying metadata
 
 ### Important
-To increase the number the messages that can be held in message queue 
-`sudo sh -c 'echo 8000 > /proc/sys/fs/mqueue/msg_max'`
+To increase the number of messages that can be held in message queue
+>`sudo sh -c 'echo 8000 > /proc/sys/fs/mqueue/msg_max'`
 
 ### Dependencies
 1. libpqueue
@@ -31,5 +29,21 @@ gcc -c pqueue.c -o pqueue.o
 ar rcs libpqueue.a pqueue.o
 ```
 
+### To run demo
+#### Requirements
+1. Ubuntu 14.04 machine
+2. USB pendrive
+
+#### Build
+> sh build.sh
+
+#### Demo
+1. Create a folder in pendrive, name of your choice
+2. Open run.sh and change path of USB folder
+3. > sh run.sh
+
+This will run the 4 test cases as illustarted in the paper / presentation
+Time taken for each of the 4 tests can be verified from console prints
+
 ### Results
-Increased the read throughput by approximately 50% when compared to a static allocation strategy
+Increased the read throughput by approximately 100% when compared to a static allocation strategy

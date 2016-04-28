@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -rf libpqueue
 git clone https://github.com/vy/libpqueue.git
 cd ./libpqueue/src
 gcc -c pqueue.c -o pqueue.o
