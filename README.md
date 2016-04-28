@@ -1,7 +1,7 @@
 # SSHDD
 #### (ssshh.. we do it silently in the background)
-#### Using SSD as a fast cache in a tiered architecture along with HDD
-Files are moved between SSD and HDD without the user's knowledge with a goal to optimize file IO performance. The file movement is decided based on the access pattern and dynamic in nature.
+#### Using SSD and HDD in a hybrid storage system
+Files are moved between SSD and HDD without the user's knowledge with a goal to optimize file IO performance. The file movement is decided based on the access pattern and is dynamic in nature.
 
 ### Algorithm
 * Maps file ID to physical file path
