@@ -43,3 +43,6 @@ Release/
 
 # Fuse hidden files
 .fuse_hidden*
+
+# SSHDD Binary
+sshdd
