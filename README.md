@@ -13,13 +13,6 @@ Files are moved between SSD and HDD without the user's knowledge with a goal to 
 ### Testing
 File access pattern data set : http://ita.ee.lbl.gov/html/contrib/WorldCup.html. All files in the access pattern data set are generated and the access pattern is simulated to study the performance gain in terms of time take to read all files in the access pattern.
 
-### TODO
-* Add locking mechanism while modifying metadata
-
-### Important
-To increase the number of messages that can be held in message queue
->`sudo sh -c 'echo 8000 > /proc/sys/fs/mqueue/msg_max'`
-
 ### Dependencies
 1. libpqueue
 ```
@@ -34,16 +27,25 @@ ar rcs libpqueue.a pqueue.o
 1. Ubuntu 14.04 machine
 2. USB pendrive
 
-#### Build
-> sh build.sh
+### Important
+To increase the number of messages that can be held in message queue
+>`sudo sh -c 'echo 8000 > /proc/sys/fs/mqueue/msg_max'`
 
-#### Demo
+#### Build
+>`sh build.sh`
+
+#### Pendrive setup and config
 1. Create a folder in pendrive, name of your choice
 2. Open run.sh and change path of USB folder
-3. > sh run.sh
+
+#### Run
+>`sh run.sh`
 
 This will run the 4 test cases as illustarted in the paper / presentation
 Time taken for each of the 4 tests can be verified from console prints
 
 ### Results
 Increased the read throughput by approximately 100% when compared to a static allocation strategy
+
+### TODO
+* Add locking mechanism while modifying metadata
